@@ -1,0 +1,7 @@
+name: donjuan
+channels:
+ - conda-forge
+ - anaconda
+dependencies:
+ - python>=3.6
+ - pillow>=8.0
