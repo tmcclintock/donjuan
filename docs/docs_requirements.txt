@@ -1,0 +1,4 @@
+pillow>=8.0
+pytest
+coverage
+sphinx-autoapi
