@@ -1,6 +1,7 @@
 from typing import Any, List, Optional
 
-from donjuan import Doorspace, Faces
+from donjuan.doorspace import Doorspace
+from donjuan.face import Faces
 
 
 class Cell:
