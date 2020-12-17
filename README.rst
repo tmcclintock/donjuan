@@ -1,5 +1,5 @@
 DonJuan
-=========
+=======
 
 A translation/rebuild of the original `donjon dungeon generator <https://donjon.bin.sh/fantasy/dungeon/>`_.
 This package aims to deconstruct the original script into extendable parts, and provide all pieces
@@ -8,5 +8,15 @@ will automatically generate walls, doors, and light sources for use in
 `Foundry Virtual Tabletop <https://foundryvtt.com/>`_.
 
 You can find the `documentation here <https://donjuan.readthedocs.io/en/latest/>`_.
+
+Composability
+-------------
+
+Composability is a central design principle of this package. That is, complex
+objects are composed of more simple ones. For example, a
+:class:`~donjuan.dungeon.Dungeon` is composed of rooms and passages that are
+fundamentally made up of
+:class:`~donjuan.cell.Cell` objects that individually have properties.
+
 
 This is a work in progress.
