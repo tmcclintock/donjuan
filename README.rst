@@ -1,6 +1,9 @@
 DonJuan
 =======
 
+**HACKATHON** - a list of todo items for the 12/20/20 Hackathon can be found
+on the issues page!
+
 A translation/rebuild of the original `donjon dungeon generator <https://donjon.bin.sh/fantasy/dungeon/>`_.
 This package aims to deconstruct the original script into extendable parts, and provide all pieces
 for customization for different purposes and not just the map image. For example, when complete this package
@@ -17,6 +20,5 @@ objects are composed of more simple ones. For example, a
 `Dungeon` is composed of rooms and passages that are
 fundamentally made up of `Cell` objects that individually have properties,
 such as `Door` objects and `Faces`.
-
 
 This is a work in progress.
