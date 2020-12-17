@@ -14,9 +14,9 @@ Composability
 
 Composability is a central design principle of this package. That is, complex
 objects are composed of more simple ones. For example, a
-:class:`~donjuan.dungeon.Dungeon` is composed of rooms and passages that are
-fundamentally made up of
-:class:`~donjuan.cell.Cell` objects that individually have properties.
+`Dungeon` is composed of rooms and passages that are
+fundamentally made up of `Cell` objects that individually have properties,
+such as `Door` objects and `Faces`.
 
 
 This is a work in progress.
