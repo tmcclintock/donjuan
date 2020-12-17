@@ -3,3 +3,4 @@ __docs__ = "Package for generating dungeons."
 
 from .doorspace import Archway, Door, Doorspace, Portcullis
 from .dungeon import Dungeon
+from .face import BareFace, Face, Faces
