@@ -11,8 +11,6 @@ class Cell:
     walls, lights, other room details etc.
 
     Args:
-      x (float): horizontal grid coordinate
-      y (float): veritcal grid coordinate
       filled (bool, optional): flag indicating whether the cell is
         filled (default ``False``)
       doorspace (Optional[Doorspace]): kind of doorway in this cell
@@ -22,15 +20,11 @@ class Cell:
 
     def __init__(
         self,
-        x: float,
-        y: float,
         filled: bool = False,
         doorspace: Optional[Doorspace] = None,
         faces: Optional[Faces] = None,
         contents: Optional[List[Any]] = None,
     ):
-        self.x = x
-        self.y = y
         self.filled = filled
         self.doorspace = doorspace
         self.faces = faces or Faces()
