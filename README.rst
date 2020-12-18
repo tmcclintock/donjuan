@@ -12,6 +12,78 @@ will automatically generate walls, doors, and light sources for use in
 
 You can find the `documentation here <https://donjuan.readthedocs.io/en/latest/>`_.
 
+Installation
+------------
+
+Installing `donjuan` is possible using the `setup.py` file. When the package is
+more mature, we will cut a release on PyPI. For now, the steps to install are
+to clone or download this repository and install into your Python environment.
+
+Assuming you have `git <https://git-scm.com/>`_, you can do:
+
+.. code-block:: bash
+
+   git clone https://github.com/tmcclintock/donjuan
+   cd donjuan
+   pip install -r requirements.txt
+   python setup.py install
+
+If you have `conda
+<https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html>`_ you can install the requirements using the `environment.yml` file
+before installing:
+
+.. code-block:: bash
+
+   conda env create -f environment
+   conda activate donjuan
+   python setup.py install
+
+To run the test suite, you must have `pytest
+<https://docs.pytest.org/en/stable/>`_ installed. You can run the tests with:
+
+.. code-block:: bash
+
+   pytest
+
+which can be done from the root of the repository.
+
+Note that the only requirement at the moment is `pillow
+<https://pillow.readthedocs.io/en/stable/>`_.
+
+Contributing
+------------
+
+To contribute, please start by forking the repository and creating a branch
+for the feature you would like to work on. Once you clone your feature branch,
+install the developer environment, activate it and install `donjuan` in
+editable mode:
+
+.. code-block:: bash
+
+   conda env create -f environment_dev.yml
+   conda activate djdev
+   pip install -e .
+
+In this setup, any changes you make to the source code of `donjuan` will be
+seen immediately by your `djdev` environment. Furthermore, you will not have
+to reinstall `donjuan` if you switch branches.
+
+Once your development environment is activated, please install `pre-commit
+<https://pre-commit.com/>`_ before committing any changes:
+
+.. code-block:: bash
+
+   pre-commit install
+
+This way, any time you perform a `git commit` command, the `black`, `flake8`,
+and `isort` packages will run to clean up your code. If you see a "failure"
+message, then simply `git reset` and then fix any issues the `pre-commit`
+packages are giving you. If `pre-commit` is being too annoying, then you can
+always recreate your conda environment without installing it.
+
+Once your code is ready, commit and push it to your branch and issue a Pull
+Request on GitHub.
+
 Composability
 -------------
 
