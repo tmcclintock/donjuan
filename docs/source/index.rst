@@ -11,6 +11,7 @@ Welcome to donjuan's documentation!
    :caption: Contents:
 
    readme
+   developing
 
 
 Indices and tables
