@@ -53,4 +53,4 @@ Note that the only requirement at the moment is `pillow
 Contributing
 ------------
 
-To contribute to `donjuan` please see the :ref:`developing` page.
+To contribute to `donjuan` please see the `developing <https://donjuan.readthedocs.io/en/latest/developing.html>`_ page.
