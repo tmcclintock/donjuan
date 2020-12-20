@@ -4,12 +4,12 @@ Door ways that connect rooms to hallways and rooms to rooms.
 from abc import ABC
 
 
-class Doorspace(ABC):
+class DoorSpace(ABC):
     """
-    Abstract base class for different kinds of doors. Doorspaces can have many
+    Abstract base class for different kinds of doors. Door spaces can have many
     properties, like if they are locked or blocked etc. To facilitate
-    this logic in the genative process, these are encompassed in the
-    attributes of a ``Doorspace``.
+    this logic in the generative process, these are encompassed in the
+    attributes of a ``DoorSpace``.
     """
 
     __slots__ = [
@@ -62,7 +62,7 @@ class Doorspace(ABC):
         return s
 
 
-class Archway(Doorspace):
+class Archway(DoorSpace):
     """
     An archway to walk through.
     """
@@ -86,7 +86,7 @@ class Archway(Doorspace):
         )
 
 
-class Door(Doorspace):
+class Door(DoorSpace):
     """
     A generic door.
     """
@@ -113,7 +113,7 @@ class Door(Doorspace):
         )
 
 
-class Portcullis(Doorspace):
+class Portcullis(DoorSpace):
     """
     You can look but can't touch!
     """

@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import Any, List, Optional
 
-from donjuan.doorspace import Doorspace
+from donjuan.door_space import DoorSpace
 from donjuan.face import Faces, HexFaces, SquareFaces
 
 
@@ -16,12 +16,12 @@ class Cell(ABC):
         self,
         faces: Faces,
         filled: bool = False,
-        doorspace: Optional[Doorspace] = None,
+        door_space: Optional[DoorSpace] = None,
         contents: Optional[List[Any]] = None,
     ):
         self.faces = faces
         self.filed = filled
-        self.doorspace = doorspace
+        self.door_space = door_space
         self.contents = contents or []
 
     @property
@@ -37,7 +37,7 @@ class SquareCell(Cell):
       faces (Optional[SquareFaces]): faces of the cell
       filled (bool, optional): flag indicating whether the cell is
         filled (default ``False``)
-      doorspace (Optional[Doorspace]): kind of doorway in this cell
+      door_space (Optional[DoorSpace]): kind of doorway in this cell
       contents (Optional[List[Any]]): things in this cell
     """
 
@@ -45,12 +45,12 @@ class SquareCell(Cell):
         self,
         faces: Optional[SquareFaces] = None,
         filled: bool = False,
-        doorspace: Optional[Doorspace] = None,
+        door_space: Optional[DoorSpace] = None,
         contents: Optional[List[Any]] = None,
     ):
         faces = faces or SquareFaces()
         super().__init__(
-            faces=faces, filled=filled, doorspace=doorspace, contents=contents
+            faces=faces, filled=filled, door_space=door_space, contents=contents
         )
 
 
@@ -62,7 +62,7 @@ class HexCell(Cell):
       faces (Optional[HexFaces]): faces of the cell
       filled (bool, optional): flag indicating whether the cell is
         filled (default ``False``)
-      doorspace (Optional[Doorspace]): kind of doorway in this cell
+      door_space (Optional[DoorSpace]): kind of doorway in this cell
       contents (Optional[List[Any]]): things in this cell
     """
 
@@ -70,10 +70,10 @@ class HexCell(Cell):
         self,
         faces: Optional[HexFaces] = None,
         filled: bool = False,
-        doorspace: Optional[Doorspace] = None,
+        door_space: Optional[DoorSpace] = None,
         contents: Optional[List[Any]] = None,
     ):
         faces = faces or HexFaces()
         super().__init__(
-            faces=faces, filled=filled, doorspace=doorspace, contents=contents
+            faces=faces, filled=filled, door_space=door_space, contents=contents
         )
