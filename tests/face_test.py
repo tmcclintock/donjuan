@@ -2,11 +2,11 @@ from unittest import TestCase
 
 import pytest
 
-from donjuan import BareFace, HexFaces, SquareFaces
+from donjuan import BareFace, HexFaces, SquareFaces, DoorFace, Door, DoorSpace
 
 
 class BareFaceTest(TestCase):
-    def test_bareface_smoke(self):
+    def test_bare_face_smoke(self):
         f = BareFace()
         assert f.direction == 0
 
@@ -15,6 +15,23 @@ class BareFaceTest(TestCase):
         assert f.direction == 3
         with pytest.raises(AssertionError):
             BareFace(-1)
+
+
+class DoorFaceTest(TestCase):
+    def test_door_face_smoke(self):
+        door = Door()
+        f = DoorFace(door)
+        assert f.direction == 0
+        assert isinstance(f.door_space, DoorSpace)
+        assert isinstance(f.door_space, Door)
+
+    def test_direction(self):
+        door = Door()
+        f = DoorFace(door, 3)
+        assert f.direction == 3
+        assert isinstance(f.door_space, DoorSpace)
+        with pytest.raises(AssertionError):
+            DoorFace(door, -1)
 
 
 class SquareFacesTest(TestCase):

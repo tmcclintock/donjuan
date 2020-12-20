@@ -1,5 +1,6 @@
 from abc import ABC
 from typing import List, Optional
+from donjuan.door_space import DoorSpace
 
 
 class Face(ABC):
@@ -21,6 +22,16 @@ class BareFace(Face):
     """
     A face with nothing on it.
     """
+
+
+class DoorFace(Face):
+    """
+    A face with a door on it.
+    """
+
+    def __init__(self, door_space: DoorSpace, direction: int = 0):
+        super().__init__(direction)
+        self.door_space = door_space
 
 
 class Faces:

@@ -4,5 +4,5 @@ __docs__ = "Package for generating dungeons."
 from .cell import Cell, HexCell, SquareCell
 from .door_space import Archway, Door, DoorSpace, Portcullis
 from .dungeon import Dungeon
-from .face import BareFace, Face, Faces, HexFaces, SquareFaces
+from .face import BareFace, Face, Faces, HexFaces, SquareFaces, DoorFace
 from .grid import Grid, SquareGrid
