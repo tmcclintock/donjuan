@@ -5,4 +5,4 @@ from .cell import Cell, HexCell, SquareCell
 from .doorspace import Archway, Door, Doorspace, Portcullis
 from .dungeon import Dungeon
 from .face import BareFace, Face, Faces, HexFaces, SquareFaces
-from .grid import Grid, SquareGrid
+from .grid import Grid, HexGrid, SquareGrid
