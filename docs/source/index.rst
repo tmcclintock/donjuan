@@ -1,5 +1,12 @@
+.. |TRAVIS| image:: https://travis-ci.com/tmcclintock/donjuan.svg?branch=main
+	    :target: https://travis-ci.com/github/tmcclintock/donjuan
+.. |COVERALLS| image:: https://coveralls.io/repos/github/tmcclintock/donjuan/badge.svg?branch=main
+	       :target: https://coveralls.io/github/tmcclintock/donjuan?branch=main
+
 Welcome to donjuan's documentation!
 ===================================
+
+|TRAVIS| |COVERALLS| |LICENSE|
 
 This package is a rebuild of the `donjon <https://donjon.bin.sh/code/dungeon/>`_
 dungeon generator, with all the benefits that come from using modern tools.
