@@ -3,7 +3,7 @@
 .. |COVERALLS| image:: https://coveralls.io/repos/github/tmcclintock/donjuan/badge.svg?branch=main
 	       :target: https://coveralls.io/github/tmcclintock/donjuan?branch=main
 
-.. |LICENSE| image:: https://licensebuttons.net/l/zero/1.0/80x15.png
+.. |LICENSE| image:: https://img.shields.io/badge/License-CC0%201.0-lightgrey.svg
 	     :target: http://creativecommons.org/publicdomain/zero/1.0/
 
 |TRAVIS| |COVERALLS| |LICENSE|
