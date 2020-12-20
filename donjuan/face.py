@@ -1,5 +1,6 @@
 from abc import ABC
 from typing import List, Optional
+
 from donjuan.door_space import DoorSpace
 
 

@@ -2,7 +2,7 @@ from unittest import TestCase
 
 import pytest
 
-from donjuan import BareFace, HexFaces, SquareFaces, DoorFace, Door, DoorSpace
+from donjuan import BareFace, Door, DoorFace, DoorSpace, HexFaces, SquareFaces
 
 
 class BareFaceTest(TestCase):
