@@ -44,7 +44,7 @@ before installing:
 
 .. code-block:: bash
 
-   conda env create -f environment
+   conda env create -f environment.yml
    conda activate donjuan
    python setup.py install
 
