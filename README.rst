@@ -1,3 +1,5 @@
+|Flat Badge| image:: https://travis-ci.com/tmcclintock/donjuan.svg?branch=main
+
 DonJuan
 =======
 
