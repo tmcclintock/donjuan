@@ -1,6 +1,13 @@
-class Dungeon:
-    """
-    A dungeon once it has been generated.
-    """
+from typing import Optional
 
-    pass
+from donjuan.grid import Grid, SquareGrid
+
+
+class Dungeon:
+    def __init__(
+        self,
+        n_rows: Optional[int] = 5,
+        n_cols: Optional[int] = 5,
+        grid: Optional[Grid] = None,
+    ):
+        self.grid = grid if grid else SquareGrid(n_rows, n_cols)

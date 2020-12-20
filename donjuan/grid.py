@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from donjuan.cell import Cell
+from donjuan.cell import Cell, SquareCell
 
 
 class Grid(ABC):
@@ -24,7 +24,7 @@ class SquareGrid(Grid):
     def __init__(self, n_rows: int, n_cols: int):
         self.n_rows = n_rows
         self.n_cols = n_cols
-        self.cells = [[Cell() for i in range(n_rows)] for j in range(n_cols)]
+        self.cells = [[SquareCell() for i in range(n_rows)] for j in range(n_cols)]
 
     @classmethod
     def from_cells(cls, cells: List[List[Cell]]):
