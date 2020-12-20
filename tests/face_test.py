@@ -48,4 +48,4 @@ class HexFacesTest(TestCase):
     def test_assert_number_of_Faces(self):
         faces = [BareFace()]  # should have six faces
         with pytest.raises(AssertionError):
-            SquareFaces(faces)
+            HexFaces(faces)
