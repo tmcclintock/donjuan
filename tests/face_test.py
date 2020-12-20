@@ -28,6 +28,11 @@ class SquareFacesTest(TestCase):
         for i, f in enumerate(fs):
             assert f.direction == i
 
+    def test_assert_number_of_Faces(self):
+        faces = [BareFace()]  # should have four faces
+        with pytest.raises(AssertionError):
+            SquareFaces(faces)
+
 
 class HexFacesTest(TestCase):
     def test_hexfaces_smoke(self):
@@ -39,3 +44,8 @@ class HexFacesTest(TestCase):
         fs = HexFaces()
         for i, f in enumerate(fs):
             assert f.direction == i
+
+    def test_assert_number_of_Faces(self):
+        faces = [BareFace()]  # should have six faces
+        with pytest.raises(AssertionError):
+            SquareFaces(faces)
