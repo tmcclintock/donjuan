@@ -47,8 +47,6 @@ class Doorspace(ABC):
         s = f"{self.name}"
         if self.material != "":
             s = f"{self.material} " + s
-        if self.secret:
-            s = "secret " + s
         if self.locked:
             s = "locked " + s
         if self.closed:
@@ -59,6 +57,8 @@ class Doorspace(ABC):
             s = "blocked " + s
         if self.broken:
             s = "broken " + s
+        if self.secret:
+            s = "secret " + s
         return s
 
 
