@@ -2,6 +2,8 @@
 	    :target: https://travis-ci.com/github/tmcclintock/donjuan
 .. |COVERALLS| image:: https://coveralls.io/repos/github/tmcclintock/donjuan/badge.svg?branch=main
 	       :target: https://coveralls.io/github/tmcclintock/donjuan?branch=main
+.. |LICENSE| image:: https://img.shields.io/badge/License-CC0%201.0-lightgrey.svg
+	     :target: http://creativecommons.org/publicdomain/zero/1.0/
 
 Welcome to donjuan's documentation!
 ===================================
