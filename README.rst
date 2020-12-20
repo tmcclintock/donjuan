@@ -25,9 +25,17 @@ You can find the `documentation here <https://donjuan.readthedocs.io/en/latest/>
 Installation
 ------------
 
-Installing `donjuan` is possible using the `setup.py` file. When the package is
-more mature, we will cut a release on PyPI. For now, the steps to install are
-to clone or download this repository and install into your Python environment.
+Install `donjuan` with `pip`:
+
+.. code-block:: bash
+
+   pip install donjuan
+
+You can find the package details `here on PyPI
+<https://pypi.org/project/donjuan/>`_.
+
+You can also install `donjuan` using the `setup.py` file. To do so, you must
+first clone or download this repository and install the requirements.
 
 Assuming you have `git <https://git-scm.com/>`_, you can do:
 
@@ -36,6 +44,11 @@ Assuming you have `git <https://git-scm.com/>`_, you can do:
    git clone https://github.com/tmcclintock/donjuan
    cd donjuan
    pip install -r requirements.txt
+
+Then you can install with:
+
+.. code-block:: bash
+
    python setup.py install
 
 If you have `conda
