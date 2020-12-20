@@ -79,3 +79,14 @@ in the read array.
    for i in range(5):
        for j in range(5):
            dungeon.grid.cells[i][j].filled = bool(dungeon_array[i][j])
+
+Docstrings
+----------
+
+Docstrings are automatically rendered in the online documentation using
+Napolean sphinx. Docstrings follow the `Google style
+<https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html>`_.
+All classes and non-trivial functions and properties should be documented.
+Function signatures should be `typed
+<https://docs.python.org/3/library/typing.html>`_. Module-level docstrings at
+the top of `.py` files are not required.
