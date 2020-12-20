@@ -1,4 +1,7 @@
-|Flat Badge| image:: https://travis-ci.com/tmcclintock/donjuan.svg?branch=main
+.. image:: https://travis-ci.com/tmcclintock/donjuan.svg?branch=main
+.. image:: https://coveralls.io/repos/github/tmcclintock/donjuan/badge.svg?branch=main
+:target: https://coveralls.io/github/tmcclintock/donjuan?branch=main
+
 
 DonJuan
 =======
