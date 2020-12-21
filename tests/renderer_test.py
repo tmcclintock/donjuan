@@ -31,7 +31,7 @@ class RendererTest(TestCase):
         dungeon = Dungeon(n_rows=n_rows, n_cols=n_cols)
         for i in range(n_rows):
             for j in range(n_cols):
-                dungeon.grid.cells[i][j].filled = bool(darr)
+                dungeon.grid.cells[i][j].filled = bool(darr[i][j])
 
         # Render and check for the file
         fp = os.path.join(self.TEMP_DIR, "rendered_dungeon.png")
