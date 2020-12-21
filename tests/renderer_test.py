@@ -23,7 +23,8 @@ class RendererTest(TestCase):
 
     @pytest.mark.slow
     def test_render(self):
-        inpath = "fixtures/dummy_dungeon.json"
+        inpath = os.path.abspath(os.path.dirname(__file__))
+        inpath = os.path.join(inpath, "fixtures/dummy_dungeon.json")
         with open(inpath, "r") as f:
             darr = json.load(f)["dungeon"]
         n_rows = len(darr)
