@@ -12,7 +12,7 @@ install:
   - python setup.py install
 #Run the tests
 script:
-  - coverage run -m pytest
+  - coverage run -m pytest --runslow
   - coverage report -m
 after_success:
   - coveralls

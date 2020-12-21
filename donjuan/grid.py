@@ -1,5 +1,5 @@
-from abc import ABC, abstractmethod
-from typing import List
+from abc import ABC
+from typing import List, Optional
 
 from donjuan.cell import Cell, HexCell, SquareCell
 
@@ -10,21 +10,41 @@ class Grid(ABC):
     be square or hexagonal.
     """
 
-    @classmethod
-    @abstractmethod
-    def from_cells(cls, cells: List[List[Cell]]):
-        pass
+    def __init__(
+        self, n_rows: int, n_cols: int, cells: Optional[List[List[Cell]]] = None
+    ):
+        assert n_rows > 1
+        assert n_cols > 1
+        cells = cells or [
+            [self.cell_type() for i in range(n_cols)] for j in range(n_rows)
+        ]
+        assert len(cells) == n_rows, f"{len(cells)} vs {n_rows}"
+        assert len(cells[0]) == n_cols, f"{len(cells[0])} vs {n_cols}"
+        self._n_rows = n_rows
+        self._n_cols = n_cols
+        self._cells = cells
 
+    def get_filled_grid(self) -> List[List[bool]]:
+        """
+        Obtain a 2D array of boolean values representing the :attr:`filled`
+        state of the cells attached to the grid.
+        """
+        return [
+            [self.cells[i][j].filled for j in range(self.n_cols)]
+            for i in range(self.n_rows)
+        ]
 
-class SquareGrid(Grid):
-    """
-    Square grid of cells. In a square grid, the cell positions are integers.
-    """
+    @property
+    def n_rows(self) -> int:
+        return self._n_rows
 
-    def __init__(self, n_rows: int, n_cols: int):
-        self.n_rows = n_rows
-        self.n_cols = n_cols
-        self.cells = [[SquareCell() for i in range(n_rows)] for j in range(n_cols)]
+    @property
+    def n_cols(self) -> int:
+        return self._n_cols
+
+    @property
+    def cells(self) -> List[List[Cell]]:
+        return self._cells
 
     @classmethod
     def from_cells(cls, cells: List[List[Cell]]):
@@ -32,12 +52,22 @@ class SquareGrid(Grid):
         assert len(cells) >= 1, "cells must have an inner dimension"
         assert isinstance(cells[0], list)
         assert len(cells[0]) >= 1, "cells must have at least 1 column"
-        assert isinstance(cells[0][0], Cell)
-        n_rows = len(cells)
-        n_cols = len(cells[0])
-        grid = SquareGrid(n_rows, n_cols)
-        grid.cells = cells
-        return grid
+        msg = f"passed cells of type {type(cells[0][0])} but require {cls.cell_type}"
+        assert isinstance(cells[0][0], cls.cell_type), msg
+        return cls(len(cells), len(cells[0]), cells)
+
+
+class SquareGrid(Grid):
+    """
+    Square grid of cells. In a square grid, the cell positions are integers.
+    """
+
+    cell_type = SquareCell
+
+    def __init__(
+        self, n_rows: int, n_cols: int, cells: Optional[List[List[SquareCell]]] = None
+    ):
+        super().__init__(n_rows, n_cols, cells)
 
 
 class HexGrid(Grid):
@@ -47,20 +77,9 @@ class HexGrid(Grid):
     rendered.
     """
 
-    def __init__(self, n_rows: int, n_cols: int):
-        self.n_rows = n_rows
-        self.n_cols = n_cols
-        self.cells = [[HexCell() for i in range(n_rows)] for j in range(n_cols)]
+    cell_type = HexCell
 
-    @classmethod
-    def from_cells(cls, cells: List[List[Cell]]):
-        assert isinstance(cells, list)
-        assert len(cells) >= 1, "cells must have an inner dimension"
-        assert isinstance(cells[0], list)
-        assert len(cells[0]) >= 1, "cells must have at least 1 column"
-        assert isinstance(cells[0][0], Cell)
-        n_rows = len(cells)
-        n_cols = len(cells[0])
-        grid = HexGrid(n_rows, n_cols)
-        grid.cells = cells
-        return grid
+    def __init__(
+        self, n_rows: int, n_cols: int, cells: Optional[List[List[HexCell]]] = None
+    ):
+        super().__init__(n_rows, n_cols, cells)
