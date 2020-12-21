@@ -1,3 +1,4 @@
+import json
 import os
 import tempfile
 from unittest import TestCase
@@ -22,8 +23,18 @@ class RendererTest(TestCase):
 
     @pytest.mark.slow
     def test_render(self):
+        inpath = "fixtures/dummy_dungeon.json"
+        with open(inpath, "r") as f:
+            darr = json.load(f)["dungeon"]
+        n_rows = len(darr)
+        n_cols = len(darr)
+        dungeon = Dungeon(n_rows=n_rows, n_cols=n_cols)
+        for i in range(n_rows):
+            for j in range(n_cols):
+                dungeon.grid.cells[i][j].filled = bool(darr)
+
+        # Render and check for the file
         fp = os.path.join(self.TEMP_DIR, "rendered_dungeon.png")
         r = Renderer()
-        dungeon = Dungeon(n_rows=5, n_cols=5)
         r.render(dungeon, file_path=fp)
         assert os.path.exists(fp)
