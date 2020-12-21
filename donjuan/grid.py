@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Tuple
 
 from donjuan.cell import Cell, HexCell, SquareCell
 
@@ -52,6 +52,58 @@ class SquareGrid(Grid):
         grid = SquareGrid(n_rows, n_cols)
         grid.cells = cells
         return grid
+
+    def find_walls(self) -> List[Tuple[Tuple[int, int], Tuple[int, int], str]]:
+        """
+        Find all of the continuous walls.
+        :return: a list of walls, where a wall is defined as a three part tuple:
+                        1. the first cell of the wall's coordinates
+                        2. the last cell of the wall's coordinates
+                        3. the dimension of the wall (vertical or horizontal)
+                 vertical walls run along side the east side of the cells
+                 horizontal walls run along side the south side of the cells
+        """
+        checked_borders = {}
+        walls = []
+        for row, y in zip(self.cells, range(len(self.cells))):
+            for cell, x in zip(row, range(len(row))):
+                if (x, y, "y") not in checked_borders:
+                    checked_borders[(x, y, "y")] = 1
+                    if (
+                        y + 1 < len(self.cells)
+                        and cell.filled != self.cells[y + 1][x].filled
+                    ):
+                        wall_start = (x, y)
+                        wall_end = (x, y)
+                        i = 1
+                        while x + i < len(row):
+                            checked_borders[(x + i, y, "x")] = 1
+                            if (
+                                self.cells[y][x + i].filled
+                                != self.cells[y + 1][x + i].filled
+                            ):
+                                wall_end = (x + i, y)
+                                i += 1
+                            else:
+                                break
+                        walls.append((wall_start, wall_end, "horizontal"))
+
+                    if x + 1 < len(row) and cell.filled != row[x + 1].filled:
+                        wall_start = (x, y)
+                        wall_end = (x, y)
+                        i = 1
+                        while y + i < len(self.cells):
+                            checked_borders[(x, y + i, "y")] = 1
+                            if (
+                                self.cells[y + i][x].filled
+                                != self.cells[y + i][x + 1].filled
+                            ):
+                                wall_end = (x, y + i)
+                                i += 1
+                            else:
+                                break
+                        walls.append((wall_start, wall_end, "vertical"))
+        return walls
 
 
 class HexGrid(Grid):

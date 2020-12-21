@@ -1,3 +1,4 @@
+import json
 from unittest import TestCase
 
 from donjuan import HexCell, HexGrid, SquareCell, SquareGrid
@@ -32,6 +33,25 @@ class SquareGridTest(TestCase):
                     assert not fg[i][j], (i, j)
                 else:
                     assert fg[i][j], (i, j)
+
+    def test_find_walls(self):
+        input_path = "tests/fixtures/dummy_dungeon.json"
+        with open(input_path, "r") as f:
+            dungeon_array = json.load(f)["dungeon"]
+        dungeon_walls = [
+            ((2, 0), (2, 4), "vertical"),
+            ((3, 0), (3, 1), "vertical"),
+            ((4, 1), (4, 1), "horizontal"),
+            ((4, 2), (4, 2), "horizontal"),
+            ((3, 3), (3, 4), "vertical"),
+        ]
+        n_rows = len(dungeon_array)
+        n_cols = len(dungeon_array)
+        grid = SquareGrid(n_rows=n_rows, n_cols=n_cols)
+        for i in range(n_rows):
+            for j in range(n_cols):
+                grid.cells[i][j].filled = bool(dungeon_array[i][j])
+        assert grid.find_walls() == dungeon_walls
 
 
 class HexGridTest(TestCase):
