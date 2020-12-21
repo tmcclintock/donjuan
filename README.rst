@@ -71,7 +71,7 @@ To run the test suite, you must have `pytest
 which can be done from the root of the repository. To run all tests, including
 those with graphical outputs, run with the ``runslow`` flag:
 
-.. codeblock:: bash
+.. code-block:: bash
 
    pytest --runslow
 
