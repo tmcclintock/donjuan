@@ -20,7 +20,7 @@ class Cell(ABC):
         contents: Optional[List[Any]] = None,
     ):
         self.faces = faces
-        self.filed = filled
+        self.filled = filled
         self.door_space = door_space
         self.contents = contents or []
 
