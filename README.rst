@@ -70,9 +70,6 @@ To run the test suite, you must have `pytest
 
 which can be done from the root of the repository.
 
-Note that the only requirement at the moment is `pillow
-<https://pillow.readthedocs.io/en/stable/>`_.
-
 Contributing
 ------------
 
