@@ -26,7 +26,7 @@ class Grid(ABC):
     @classmethod
     @abstractmethod
     def from_cells(cls, cells: List[List[Cell]]):
-        pass
+        pass  # pragma: no cover
 
 
 class SquareGrid(Grid):

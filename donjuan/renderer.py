@@ -24,7 +24,7 @@ class BaseRenderer(ABC):
 
     @abstractmethod
     def render(self, dungeon: Dungeon) -> None:
-        pass
+        pass  # pragma: no cover
 
 
 class Renderer(BaseRenderer):
