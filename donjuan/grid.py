@@ -24,6 +24,16 @@ class Grid(ABC):
         self._n_cols = n_cols
         self._cells = cells
 
+    def get_filled_grid(self) -> List[List[bool]]:
+        """
+        Obtain a 2D array of boolean values representing the :attr:`filled`
+        state of the cells attached to the grid.
+        """
+        return [
+            [self.cells[i][j].filled for j in range(self.n_cols)]
+            for i in range(self.n_rows)
+        ]
+
     @property
     def n_rows(self) -> int:
         return self._n_rows
