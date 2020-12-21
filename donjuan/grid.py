@@ -10,10 +10,23 @@ class Grid(ABC):
     be square or hexagonal.
     """
 
+    def __init__(self, cells: Cell):
+        self.cells = cells
+
+    def get_filled_grid(self) -> List[List[bool]]:
+        """
+        Obtain a 2D array of boolean values representing the :attr:`filled`
+        state of the cells attached to the grid.
+        """
+        return [
+            [self.cells[i][j].filled for j in range(self.n_cols)]
+            for i in range(self.n_rows)
+        ]
+
     @classmethod
     @abstractmethod
     def from_cells(cls, cells: List[List[Cell]]):
-        pass
+        pass  # pragma: no cover
 
 
 class SquareGrid(Grid):
@@ -24,7 +37,8 @@ class SquareGrid(Grid):
     def __init__(self, n_rows: int, n_cols: int):
         self.n_rows = n_rows
         self.n_cols = n_cols
-        self.cells = [[SquareCell() for i in range(n_rows)] for j in range(n_cols)]
+        cells = [[SquareCell() for i in range(n_cols)] for j in range(n_rows)]
+        super().__init__(cells=cells)
 
     @classmethod
     def from_cells(cls, cells: List[List[Cell]]):
@@ -50,7 +64,8 @@ class HexGrid(Grid):
     def __init__(self, n_rows: int, n_cols: int):
         self.n_rows = n_rows
         self.n_cols = n_cols
-        self.cells = [[HexCell() for i in range(n_rows)] for j in range(n_cols)]
+        cells = [[HexCell() for i in range(n_cols)] for j in range(n_rows)]
+        super().__init__(cells=cells)
 
     @classmethod
     def from_cells(cls, cells: List[List[Cell]]):

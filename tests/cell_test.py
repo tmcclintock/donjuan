@@ -8,6 +8,12 @@ class SquareCellTest(TestCase):
         c = SquareCell()
         assert c is not None
 
+    def test_filled(self):
+        c = SquareCell()
+        assert not c.filled
+        c.filled = True
+        assert c.filled
+
     def test_faces(self):
         c = SquareCell()
         assert len(c.faces) == 4
