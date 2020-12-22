@@ -11,11 +11,11 @@ class Randomizer:
 
     def randomize_cell(self, cell: Cell) -> None:
         """Randomize properties of the `Cell`"""
-        pass
+        pass  # pragma: no cover
 
     def randomize_grid(self, grid: Grid) -> None:
         """Randomize properties of the `Grid`"""
-        pass
+        pass  # pragma: no cover
 
     @classmethod
     def seed(cls, seed: Optional[int] = None) -> None:
