@@ -7,24 +7,12 @@ from donjuan import Cell
 class Room:
     def __init__(self, cells: Optional[List[List[Cell]]] = None):
         self._cells = cells or [[]]
+        for cell in chain.from_iterable(self._cells):
+            assert cell.coordinates is not None, "room cell must have coordinates"
 
     @property
     def cells(self) -> List[List[Cell]]:
         return self._cells
-
-    def grow(self, cell: Cell) -> None:
-        """
-        Add the cell to the 2D array of cells that make up this room
-        in the :attr:`cell` attribute.
-
-        .. todo:: finish implementing this
-
-        Args:
-            cell (Cell): cell to add to this room. It must have
-                :attr:`coordinates` set.
-        """
-        assert cell.coordinates, "cell must have coordinates set"
-        pass
 
     def overlaps(self, other: "Room") -> bool:
         """

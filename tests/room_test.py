@@ -1,6 +1,8 @@
 from unittest import TestCase
 
-from donjuan import Room
+import pytest
+
+from donjuan import Room, SquareCell
 
 
 class RoomTest(TestCase):
@@ -8,3 +10,8 @@ class RoomTest(TestCase):
         r = Room()
         assert r is not None
         assert r.cells == [[]]
+
+    def test_assert_cell_coords(self):
+        c = SquareCell()
+        with pytest.raises(AssertionError):
+            Room(cells=[[c]])
