@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Tuple
 
 from donjuan.door_space import DoorSpace
 from donjuan.face import Faces, HexFaces, SquareFaces
@@ -18,11 +18,28 @@ class Cell(ABC):
         filled: bool = False,
         door_space: Optional[DoorSpace] = None,
         contents: Optional[List[Any]] = None,
+        coordinates: Optional[Tuple[int, int]] = None,
     ):
         self.faces = faces
         self.filled = filled
         self.door_space = door_space
         self.contents = contents or []
+        self._coordinates = coordinates
+
+    def set_coordinates(self, x: int, y: int) -> None:
+        self._coordinates = (int(x), int(y))
+
+    @property
+    def coordinates(self) -> Tuple[int, int]:
+        return self._coordinates
+
+    @property
+    def x(self) -> int:
+        return self._coordinates[0]
+
+    @property
+    def y(self) -> int:
+        return self._coordinates[1]
 
     @property
     def n_sides(self) -> int:
@@ -47,10 +64,15 @@ class SquareCell(Cell):
         filled: bool = False,
         door_space: Optional[DoorSpace] = None,
         contents: Optional[List[Any]] = None,
+        coordinates: Optional[Tuple[int, int]] = None,
     ):
         faces = faces or SquareFaces()
         super().__init__(
-            faces=faces, filled=filled, door_space=door_space, contents=contents
+            faces=faces,
+            filled=filled,
+            door_space=door_space,
+            contents=contents,
+            coordinates=coordinates,
         )
 
 
@@ -72,8 +94,13 @@ class HexCell(Cell):
         filled: bool = False,
         door_space: Optional[DoorSpace] = None,
         contents: Optional[List[Any]] = None,
+        coordinates: Optional[Tuple[int, int]] = None,
     ):
         faces = faces or HexFaces()
         super().__init__(
-            faces=faces, filled=filled, door_space=door_space, contents=contents
+            faces=faces,
+            filled=filled,
+            door_space=door_space,
+            contents=contents,
+            coordinates=coordinates,
         )

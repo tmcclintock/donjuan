@@ -20,23 +20,40 @@ class SquareGridTest(TestCase):
         assert sg.n_rows == 5
         assert isinstance(sg.cells[0][0], SquareCell)
 
+    def test_cell_coordinates(self):
+        sg = SquareGrid(5, 4)
+        for i in range(sg.n_rows):
+            for j in range(sg.n_cols):
+                assert sg.cells[i][j].coordinates == (i, j)
+
     def test_get_filled_grid(self):
-        sg = SquareGrid(5, 5)
+        sg = SquareGrid(5, 4)
         fg = sg.get_filled_grid()
         assert all(fg)
 
     def test_get_filled_grid_some_unfilled(self):
-        sg = SquareGrid(5, 5)
+        sg = SquareGrid(5, 4)
         for i in range(5):
             sg.cells[i][3].filled = True
         fg = sg.get_filled_grid()
         for i in range(5):
-            for j in range(5):
+            for j in range(4):
                 assert fg[i][j] == sg.cells[i][j].filled, (i, j)
                 if j != 3:
                     assert not fg[i][j], (i, j)
                 else:
                     assert fg[i][j], (i, j)
+
+    def test_reset_cell_coordinates(self):
+        cells = [[SquareCell() for i in range(4)] for j in range(5)]
+        sg = SquareGrid.from_cells(cells)
+        for i in range(sg.n_rows):
+            for j in range(sg.n_cols):
+                assert sg.cells[i][j].coordinates is None
+        sg.reset_cell_coordinates()
+        for i in range(sg.n_rows):
+            for j in range(sg.n_cols):
+                assert sg.cells[i][j].coordinates == (i, j)
 
 
 class HexGridTest(TestCase):

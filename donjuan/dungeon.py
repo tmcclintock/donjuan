@@ -1,6 +1,7 @@
-from typing import Optional
+from typing import Dict, Optional
 
 from donjuan.grid import Grid, SquareGrid
+from donjuan.room import Room
 
 
 class Dungeon:
@@ -9,5 +10,15 @@ class Dungeon:
         n_rows: Optional[int] = 5,
         n_cols: Optional[int] = 5,
         grid: Optional[Grid] = None,
+        rooms: Dict[str, Room] = dict(),
     ):
-        self.grid = grid if grid else SquareGrid(n_rows, n_cols)
+        self._grid = grid or SquareGrid(n_rows, n_cols)
+        self._rooms = rooms
+
+    @property
+    def grid(self) -> Grid:
+        return self._grid
+
+    @property
+    def rooms(self) -> Dict[str, Room]:
+        return self._rooms

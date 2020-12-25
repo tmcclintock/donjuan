@@ -22,6 +22,14 @@ class SquareCellTest(TestCase):
         c = SquareCell()
         assert c.n_sides == 4
 
+    def test_coordinates(self):
+        c = SquareCell()
+        assert c.coordinates is None
+        c.set_coordinates(1, 2)
+        assert c.coordinates == (1, 2)
+        assert c.x == 1
+        assert c.y == 2
+
 
 class HexCellTest(TestCase):
     def test_smoke(self):
@@ -35,3 +43,11 @@ class HexCellTest(TestCase):
     def test_n_sides(self):
         c = HexCell()
         assert c.n_sides == 6
+
+    def test_coordinates(self):
+        c = HexCell()
+        assert c.coordinates is None
+        c.set_coordinates(1, 2)
+        assert c.coordinates == (1, 2)
+        assert c.x == 1
+        assert c.y == 2

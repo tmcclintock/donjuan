@@ -16,7 +16,8 @@ class Grid(ABC):
         assert n_rows > 1
         assert n_cols > 1
         cells = cells or [
-            [self.cell_type() for i in range(n_cols)] for j in range(n_rows)
+            [self.cell_type(coordinates=(i, j)) for j in range(n_cols)]
+            for i in range(n_rows)
         ]
         assert len(cells) == n_rows, f"{len(cells)} vs {n_rows}"
         assert len(cells[0]) == n_cols, f"{len(cells[0])} vs {n_cols}"
@@ -55,6 +56,17 @@ class Grid(ABC):
         msg = f"passed cells of type {type(cells[0][0])} but require {cls.cell_type}"
         assert isinstance(cells[0][0], cls.cell_type), msg
         return cls(len(cells), len(cells[0]), cells)
+
+    def reset_cell_coordinates(self) -> None:
+        """
+        Helper function that sets the coordinates of the cells in the grid
+        to their index values. Useful if a grid was created by
+        :meth:`from_cells`.
+        """
+        for i in range(self.n_rows):
+            for j in range(self.n_cols):
+                self.cells[i][j].set_coordinates(i, j)
+        return
 
 
 class SquareGrid(Grid):
