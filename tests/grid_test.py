@@ -20,6 +20,12 @@ class SquareGridTest(TestCase):
         assert sg.n_rows == 5
         assert isinstance(sg.cells[0][0], SquareCell)
 
+    def test_cell_coordinates(self):
+        sg = SquareGrid(5, 4)
+        for i in range(sg.n_rows):
+            for j in range(sg.n_cols):
+                assert sg.cells[i][j].coordinates == (i, j)
+
     def test_get_filled_grid(self):
         sg = SquareGrid(5, 5)
         fg = sg.get_filled_grid()

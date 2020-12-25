@@ -8,3 +8,4 @@ from .face import BareFace, DoorFace, Face, Faces, HexFaces, SquareFaces
 from .grid import Grid, HexGrid, SquareGrid
 from .randomizer import RandomFilled, Randomizer
 from .renderer import BaseRenderer, Renderer
+from .room import Room
