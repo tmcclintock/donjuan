@@ -57,6 +57,17 @@ class Grid(ABC):
         assert isinstance(cells[0][0], cls.cell_type), msg
         return cls(len(cells), len(cells[0]), cells)
 
+    def reset_cell_coordinates(self) -> None:
+        """
+        Helper function that sets the coordinates of the cells in the grid
+        to their index values. Useful if a grid was created by
+        :meth:`from_cells`.
+        """
+        for i in range(self.n_rows):
+            for j in range(self.n_cols):
+                self.cells[i][j].set_coordinates(i, j)
+        return
+
 
 class SquareGrid(Grid):
     """
