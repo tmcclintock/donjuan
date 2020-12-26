@@ -7,8 +7,6 @@ from donjuan import Cell
 class Room:
     def __init__(self, cells: Optional[List[List[Cell]]] = None):
         self._cells = cells or [[]]
-        for cell in chain.from_iterable(self._cells):
-            assert cell.coordinates is not None, "room cell must have coordinates"
 
     @property
     def cells(self) -> List[List[Cell]]:
@@ -34,3 +32,27 @@ class Room:
                     return True
         # No overlap
         return False
+
+    def shift_vertical(self, n: int) -> None:
+        """
+        Change the ``y`` coordinates of all :attr:`cells` by ``n``.
+
+        Args:
+            n (int): number to increment vertical position of cells
+        """
+        n = int(n)
+        for c in chain.from_iterable(self.cells):
+            c.set_y(c.y + n)
+        return
+
+    def shift_horizontal(self, n: int) -> None:
+        """
+        Change the ``x`` coordinates of all :attr:`cells` by ``n``.
+
+        Args:
+            n (int): number to increment horizontal position of cells
+        """
+        n = int(n)
+        for c in chain.from_iterable(self.cells):
+            c.set_x(c.x + n)
+        return
