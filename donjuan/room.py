@@ -40,9 +40,8 @@ class Room:
         Args:
             n (int): number to increment vertical position of cells
         """
-        n = int(n)
         for c in chain.from_iterable(self.cells):
-            c.set_y(c.y + n)
+            c.set_y(c.y + int(n))
         return
 
     def shift_horizontal(self, n: int) -> None:
@@ -52,7 +51,6 @@ class Room:
         Args:
             n (int): number to increment horizontal position of cells
         """
-        n = int(n)
         for c in chain.from_iterable(self.cells):
-            c.set_x(c.x + n)
+            c.set_x(c.x + int(n))
         return
