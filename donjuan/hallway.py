@@ -9,7 +9,5 @@ class Hallway(Space):
     A hallway in a dungeon. It has a start an end cell.
     """
 
-    def __init__(self, cells: Optional[List[Cell]] = None):
-        if cells is not None:
-            cells = [cells]
-        super().__init__(cells=cells)
+    def __init__(self, cells: Optional[List[List[Cell]]] = None):
+        super().__init__(cells=cells or [[]])
