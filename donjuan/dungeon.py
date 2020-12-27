@@ -10,10 +10,13 @@ class Dungeon:
         n_rows: Optional[int] = 5,
         n_cols: Optional[int] = 5,
         grid: Optional[Grid] = None,
-        rooms: Dict[str, Room] = dict(),
+        rooms: Optional[Dict[str, Room]] = None,
     ):
         self._grid = grid or SquareGrid(n_rows, n_cols)
-        self._rooms = rooms
+        self._rooms = rooms or {}
+
+    def add_room(self, room: Room) -> None:
+        self._rooms[room.name] = room
 
     @property
     def grid(self) -> Grid:
