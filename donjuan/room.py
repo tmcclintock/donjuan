@@ -24,3 +24,13 @@ class Room(Space):
     def set_name(self, name: Union[int, str]) -> None:
         self._name = name
         return
+
+    @property
+    def n_rows(self) -> int:
+        if self.cells == [[]]:
+            return 0  # special case
+        return len(self.cells)
+
+    @property
+    def n_cols(self) -> int:
+        return len(self.cells[0])
