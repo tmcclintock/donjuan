@@ -1,8 +1,6 @@
 from copy import deepcopy
 from unittest import TestCase
 
-import pytest
-
 from donjuan import Room, SquareCell
 
 
@@ -12,10 +10,21 @@ class RoomTest(TestCase):
         assert r is not None
         assert r.cells == [[]]
 
-    def test_assert_cell_coords(self):
-        c = SquareCell()
-        with pytest.raises(AssertionError):
-            Room(cells=[[c]])
+    def test_shift_vertical(self):
+        cs = [[SquareCell(coordinates=(i, j)) for j in range(5)] for i in range(4)]
+        r = Room(cs)
+        r.shift_vertical(100)
+        for i in range(len(cs)):
+            for j in range(len(cs[0])):
+                assert r.cells[i][j].coordinates == (i + 100, j)
+
+    def test_shift_horizontal(self):
+        cs = [[SquareCell(coordinates=(i, j)) for j in range(5)] for i in range(4)]
+        r = Room(cs)
+        r.shift_horizontal(100)
+        for i in range(len(cs)):
+            for j in range(len(cs[0])):
+                assert r.cells[i][j].coordinates == (i, j + 100)
 
     def test_overlaps(self):
         cs = [[SquareCell(coordinates=(i, j)) for j in range(5)] for i in range(4)]

@@ -49,7 +49,7 @@ class SquareGridTest(TestCase):
         sg = SquareGrid.from_cells(cells)
         for i in range(sg.n_rows):
             for j in range(sg.n_cols):
-                assert sg.cells[i][j].coordinates is None
+                assert sg.cells[i][j].coordinates == (0, 0)
         sg.reset_cell_coordinates()
         for i in range(sg.n_rows):
             for j in range(sg.n_cols):

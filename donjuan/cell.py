@@ -24,22 +24,31 @@ class Cell(ABC):
         self.filled = filled
         self.door_space = door_space
         self.contents = contents or []
-        self._coordinates = coordinates
+        if coordinates is None:
+            self._coordinates = [0, 0]
+        else:
+            self._coordinates = list(coordinates)
 
-    def set_coordinates(self, x: int, y: int) -> None:
-        self._coordinates = (int(x), int(y))
+    def set_coordinates(self, y: int, x: int) -> None:
+        self._coordinates = [int(y), int(x)]
+
+    def set_x(self, x: int) -> None:
+        self._coordinates[1] = int(x)
+
+    def set_y(self, y: int) -> None:
+        self._coordinates[0] = int(y)
 
     @property
     def coordinates(self) -> Tuple[int, int]:
-        return self._coordinates
+        return tuple(self._coordinates)
 
     @property
     def x(self) -> int:
-        return self._coordinates[0]
+        return self._coordinates[1]
 
     @property
     def y(self) -> int:
-        return self._coordinates[1]
+        return self._coordinates[0]
 
     @property
     def n_sides(self) -> int:

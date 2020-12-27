@@ -24,11 +24,11 @@ class SquareCellTest(TestCase):
 
     def test_coordinates(self):
         c = SquareCell()
-        assert c.coordinates is None
+        assert c.coordinates == (0, 0)
         c.set_coordinates(1, 2)
         assert c.coordinates == (1, 2)
-        assert c.x == 1
-        assert c.y == 2
+        assert c.x == 2
+        assert c.y == 1
 
 
 class HexCellTest(TestCase):
@@ -46,8 +46,8 @@ class HexCellTest(TestCase):
 
     def test_coordinates(self):
         c = HexCell()
-        assert c.coordinates is None
+        assert c.coordinates == (0, 0)
         c.set_coordinates(1, 2)
         assert c.coordinates == (1, 2)
-        assert c.x == 1
-        assert c.y == 2
+        assert c.x == 2
+        assert c.y == 1
