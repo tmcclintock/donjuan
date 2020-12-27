@@ -1,5 +1,6 @@
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 __docs__ = "Package for generating dungeons."
+
 
 from .cell import Cell, HexCell, SquareCell
 from .door_space import Archway, Door, DoorSpace, Portcullis
@@ -9,3 +10,4 @@ from .grid import Grid, HexGrid, SquareGrid
 from .randomizer import RandomFilled, Randomizer
 from .renderer import BaseRenderer, Renderer
 from .room import Room
+from .space import Space
