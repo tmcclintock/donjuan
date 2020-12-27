@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from donjuan import Dungeon, HexGrid, SquareGrid
+from donjuan import Dungeon, HexGrid, Room, SquareGrid
 
 
 class DungeonTest(TestCase):
@@ -11,6 +11,12 @@ class DungeonTest(TestCase):
     def test_initial_attributes(self):
         d = Dungeon()
         assert d.rooms == {}
+
+    def test_add_room(self):
+        r = Room(name="blah")
+        d = Dungeon()
+        d.add_room(r)
+        assert d.rooms["blah"] == r
 
     def test_hex_grid(self):
         hg = HexGrid(4, 5)
