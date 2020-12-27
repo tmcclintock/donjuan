@@ -19,6 +19,11 @@ class RoomTest(TestCase):
         r = Room(name=12)
         assert r.name == "12"
 
+    def test_set_name(self):
+        r = Room()
+        r.set_name("catdog")
+        assert r.name == "catdog"
+
     def test_set_cells(self):
         cs = [[SquareCell()]]
         r = Room(cells=cs)
