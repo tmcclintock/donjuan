@@ -48,3 +48,26 @@ class Dungeon:
         for rng in self.randomizers:
             rng.randomize_dungeon(self)
         return
+
+    def emplace_rooms(self) -> None:
+        """
+        Replace the cells in the :attr:`grid` with the cells of the
+        :attr:`rooms`.
+        """
+
+        for room_name, room in self.rooms.items():
+            self.emplace_room(room)
+        return
+
+    def emplace_room(self, room: Room) -> None:
+        """
+        Replace the cells in the :attr:`grid` with the cells of the `Room`.
+
+        Args:
+            room (Room): room to emplace in the :attr:`grid`
+        """
+        for i in range(room.n_rows):
+            for j in range(room.n_cols):
+                cell = room.cells[i][j]
+                self.grid.cells[cell.y][cell.x] = cell
+        return
