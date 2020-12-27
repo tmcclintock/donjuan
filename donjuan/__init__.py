@@ -7,6 +7,7 @@ from .door_space import Archway, Door, DoorSpace, Portcullis
 from .dungeon import Dungeon
 from .face import BareFace, DoorFace, Face, Faces, HexFaces, SquareFaces
 from .grid import Grid, HexGrid, SquareGrid
+from .hallway import Hallway
 from .randomizer import RandomFilled, Randomizer
 from .renderer import BaseRenderer, Renderer
 from .room import Room
