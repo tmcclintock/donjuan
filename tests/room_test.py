@@ -9,6 +9,13 @@ class RoomTest(TestCase):
         r = Room()
         assert r is not None
         assert r.cells == [[]]
+        assert r.name == ""
+
+    def test_name(self):
+        r = Room(name="testroom")
+        assert r.name == "testroom"
+        r = Room(name=12)
+        assert r.name == "12"
 
     def test_shift_vertical(self):
         cs = [[SquareCell(coordinates=(i, j)) for j in range(5)] for i in range(4)]

@@ -1,56 +1,26 @@
-from itertools import chain
-from typing import List, Optional
+from typing import List, Optional, Union
 
-from donjuan import Cell
+from donjuan.cell import Cell
+from donjuan.space import Space
 
 
-class Room:
-    def __init__(self, cells: Optional[List[List[Cell]]] = None):
-        self._cells = cells or [[]]
+class Room(Space):
+    """
+    A room in a dungeon. Rooms can have names. In future versions, rooms
+    will have additional features.
+    """
+
+    def __init__(
+        self, cells: Optional[List[List[Cell]]] = None, name: Union[int, str] = ""
+    ):
+        super().__init__(cells=cells or [[]])
+        assert isinstance(name, (int, str))
+        self._name = name
 
     @property
-    def cells(self) -> List[List[Cell]]:
-        return self._cells
+    def name(self) -> str:
+        return str(self._name)
 
-    def overlaps(self, other: "Room") -> bool:
-        """
-        Compare the cells of this room to the other room to determine
-        whether they overlap or not. Note, this algorithm is ``O(N*M)``
-        where ``N`` is the number of cells in this room and ``M`` is
-        the number of cells in the other room.
-
-        Args:
-            other (Room): other room to check against
-
-        Returns:
-            ``True`` if they overlap, ``False`` if not
-        """
-        # Loop over all of this room's cells
-        for c1 in chain.from_iterable(self.cells):
-            for c2 in chain.from_iterable(other.cells):
-                if c1.coordinates == c2.coordinates:
-                    return True
-        # No overlap
-        return False
-
-    def shift_vertical(self, n: int) -> None:
-        """
-        Change the ``y`` coordinates of all :attr:`cells` by ``n``.
-
-        Args:
-            n (int): number to increment vertical position of cells
-        """
-        for c in chain.from_iterable(self.cells):
-            c.set_y(c.y + int(n))
-        return
-
-    def shift_horizontal(self, n: int) -> None:
-        """
-        Change the ``x`` coordinates of all :attr:`cells` by ``n``.
-
-        Args:
-            n (int): number to increment horizontal position of cells
-        """
-        for c in chain.from_iterable(self.cells):
-            c.set_x(c.x + int(n))
+    def set_name(self, name: Union[int, str]) -> None:
+        self._name = name
         return
