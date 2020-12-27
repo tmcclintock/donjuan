@@ -96,7 +96,7 @@ class RandomFilledTest(RandomizerTestCase):
         grid = self.grid
         for i in range(grid.n_rows):
             for j in range(grid.n_cols):
-                assert not grid.cells[i][j].filled
+                assert grid.cells[i][j].filled
         rng.randomize_grid(grid)
         # Test that at least one cell became filled
         for i in range(grid.n_rows):
@@ -111,7 +111,7 @@ class RandomFilledTest(RandomizerTestCase):
         grid = self.hexgrid
         for i in range(grid.n_rows):
             for j in range(grid.n_cols):
-                assert not grid.cells[i][j].filled
+                assert grid.cells[i][j].filled
         rng.randomize_grid(grid)
         # Test that at least one cell became filled
         for i in range(grid.n_rows):
