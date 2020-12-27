@@ -10,6 +10,20 @@ class DungeonTest(TestCase):
         assert d.grid is not None
         assert d.randomizers == []
 
+    def test_randomize(self):
+        class FakeRandomizer:
+            def randomize_dungeon(self, dungeon: Dungeon):
+                # set a dummy attribute
+                setattr(dungeon, "dummy", True)
+                return
+
+        rng = FakeRandomizer()
+        d = Dungeon(randomizers=[rng])
+        assert not hasattr(d, "dummy")
+        d.randomize()
+        assert hasattr(d, "dummy")
+        assert d.dummy is True
+
     def test_initial_attributes(self):
         d = Dungeon()
         assert d.rooms == {}
