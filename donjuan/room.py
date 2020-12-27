@@ -1,6 +1,7 @@
 from typing import List, Optional, Union
 
-from donjuan import Cell, Space
+from donjuan.cell import Cell
+from donjuan.space import Space
 
 
 class Room(Space):
@@ -12,7 +13,7 @@ class Room(Space):
     def __init__(
         self, cells: Optional[List[List[Cell]]] = None, name: Union[int, str] = ""
     ):
-        super().__init__(cells)
+        super().__init__(cells=cells or [[]])
         assert isinstance(name, (int, str))
         self._name = name
 
