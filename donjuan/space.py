@@ -17,6 +17,14 @@ class Space(ABC):
     def cells(self) -> List[List[Cell]]:
         return self._cells
 
+    def set_cells(self, cells: List[List[Cell]]) -> None:
+        assert isinstance(cells, list)
+        if len(cells) > 0:
+            assert isinstance(cells[0], list)
+            if len(cells[0]) > 0:
+                assert isinstance(cells[0][0], Cell)
+        self._cells = cells
+
     def overlaps(self, other: "Space") -> bool:
         """
         Compare the cells of this room to the other room to determine

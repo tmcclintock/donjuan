@@ -17,6 +17,16 @@ class RoomTest(TestCase):
         r = Room(name=12)
         assert r.name == "12"
 
+    def test_set_cells(self):
+        cs = [[SquareCell()]]
+        r = Room(cells=cs)
+        assert len(r.cells) == 1
+        assert len(r.cells[0]) == 1
+        cs = [[SquareCell(coordinates=(i, j)) for j in range(2)] for i in range(2)]
+        r.set_cells(cs)
+        assert len(r.cells) == 2
+        assert len(r.cells[0]) == 2
+
     def test_shift_vertical(self):
         cs = [[SquareCell(coordinates=(i, j)) for j in range(5)] for i in range(4)]
         r = Room(cs)
