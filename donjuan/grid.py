@@ -16,7 +16,7 @@ class Grid(ABC):
         assert n_rows > 1
         assert n_cols > 1
         cells = cells or [
-            [self.cell_type(coordinates=(i, j)) for j in range(n_cols)]
+            [self.cell_type(filled=True, coordinates=(i, j)) for j in range(n_cols)]
             for i in range(n_rows)
         ]
         assert len(cells) == n_rows, f"{len(cells)} vs {n_rows}"
