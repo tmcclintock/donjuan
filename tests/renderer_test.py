@@ -42,7 +42,7 @@ class RendererTest(TestCase):
 
     @pytest.mark.slow
     def test_render_dungeon_with_rooms(self):
-        randomizer = DungeonRoomRandomizer(max_num_rooms=2)
+        randomizer = DungeonRoomRandomizer()
         dungeon = Dungeon(10, 10, randomizers=[randomizer])
         dungeon.randomize()
         dungeon.emplace_rooms()
