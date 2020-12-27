@@ -1,8 +1,8 @@
 from abc import ABC
 from itertools import chain
-from typing import List, Optional
+from typing import List
 
-from donjuan import Cell
+from donjuan.cell import Cell
 
 
 class Space(ABC):
@@ -10,8 +10,8 @@ class Space(ABC):
     A space is a section of a dungeon composed of cells.
     """
 
-    def __init__(self, cells: Optional[List[List[Cell]]] = None):
-        self._cells = cells or [[]]
+    def __init__(self, cells: List[List[Cell]]):
+        self._cells = cells
 
     @property
     def cells(self) -> List[List[Cell]]:
@@ -31,8 +31,8 @@ class Space(ABC):
             ``True`` if they overlap, ``False`` if not
         """
         # Loop over all of this space's cells
-        for c1 in chain.from_iterable(self.cells):
-            for c2 in chain.from_iterable(other.cells):
+        for c1 in chain.from_iterable(self._cells):
+            for c2 in chain.from_iterable(other._cells):
                 if c1.coordinates == c2.coordinates:
                     return True
         # No overlap
