@@ -70,4 +70,4 @@ class DoorSpaceRandomizer(Randomizer):
         elif(isinstance(selected_type, Archway)):
             door_space = Archway(material=material,blocked=blocked,broken=broken,secret=secret)
         return door_space
-        pass
+        
