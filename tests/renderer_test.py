@@ -5,7 +5,7 @@ from unittest import TestCase
 
 import pytest
 
-from donjuan import Dungeon, Renderer
+from donjuan import Dungeon, DungeonRandomizer, Renderer
 
 
 class RendererTest(TestCase):
@@ -22,7 +22,7 @@ class RendererTest(TestCase):
         assert r.scale == 3
 
     @pytest.mark.slow
-    def test_render(self):
+    def test_render_dummy_dungeon(self):
         inpath = os.path.abspath(os.path.dirname(__file__))
         inpath = os.path.join(inpath, "fixtures/dummy_dungeon.json")
         with open(inpath, "r") as f:
@@ -38,4 +38,17 @@ class RendererTest(TestCase):
         fp = os.path.join(self.TEMP_DIR, "rendered_dungeon.png")
         r = Renderer()
         r.render(dungeon, file_path=fp)
+        assert os.path.exists(fp)
+
+    @pytest.mark.slow
+    def test_render_dungeon_with_rooms(self):
+        randomizer = DungeonRandomizer()
+        dungeon = Dungeon(10, 10, randomizers=[randomizer])
+        dungeon.randomize()
+        dungeon.emplace_rooms()
+        renderer = Renderer()
+
+        # Render and check for the file
+        fp = os.path.join(self.TEMP_DIR, "rendered_dungeon.png")
+        renderer.render(dungeon, file_path=fp)
         assert os.path.exists(fp)
