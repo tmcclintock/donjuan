@@ -150,7 +150,7 @@ class DungeonRoomRandomizer(Randomizer):
         # Compute then umber
         n_rooms = self.get_number_of_rooms(dungeon.n_rows, dungeon.n_cols)
 
-        # Create rooms, randomize, and check for
+        # Create rooms, randomize, and check for overlap
         i = 0
         label = 0
         while len(dungeon.rooms) < n_rooms:
