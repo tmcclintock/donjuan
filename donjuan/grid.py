@@ -13,8 +13,8 @@ class Grid(ABC):
     def __init__(
         self, n_rows: int, n_cols: int, cells: Optional[List[List[Cell]]] = None
     ):
-        assert n_rows > 1
-        assert n_cols > 1
+        assert n_rows >= 1
+        assert n_cols >= 1
         cells = cells or [
             [self.cell_type(coordinates=(i, j)) for j in range(n_cols)]
             for i in range(n_rows)
