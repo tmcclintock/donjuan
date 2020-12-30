@@ -128,7 +128,7 @@ class DungeonRoomRandomizer(Randomizer):
     def get_number_of_rooms(self, dungeon_n_rows: int, dungeon_n_cols: int) -> int:
         """
         Randomly determine the number of rooms based on the size
-        of the in coming grid or the :attr:`max_num_rooms` attribute,
+        of the incoming grid or the :attr:`max_num_rooms` attribute,
         whichever is less.
 
         Args:
@@ -149,7 +149,7 @@ class DungeonRoomRandomizer(Randomizer):
         # Compute then umber
         n_rooms = self.get_number_of_rooms(dungeon.n_rows, dungeon.n_cols)
 
-        # Create rooms, randomize, and check for
+        # Create rooms, randomize, and check for overlap
         i = 0
         while len(dungeon.rooms) < n_rooms:
             # Create the room
