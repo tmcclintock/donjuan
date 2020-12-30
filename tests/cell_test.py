@@ -14,10 +14,6 @@ class SquareCellTest(TestCase):
         c.filled = True
         assert c.filled
 
-    def test_faces(self):
-        c = SquareCell()
-        assert len(c.faces) == 4
-
     def test_n_sides(self):
         c = SquareCell()
         assert c.n_sides == 4
@@ -35,10 +31,6 @@ class HexCellTest(TestCase):
     def test_smoke(self):
         c = HexCell()
         assert c is not None
-
-    def test_faces(self):
-        c = HexCell()
-        assert len(c.faces) == 6
 
     def test_n_sides(self):
         c = HexCell()

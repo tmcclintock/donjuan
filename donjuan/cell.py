@@ -2,7 +2,6 @@ from abc import ABC
 from typing import Any, List, Optional, Tuple
 
 from donjuan.door_space import DoorSpace
-from donjuan.face import Faces, HexFaces, SquareFaces
 
 
 class Cell(ABC):
@@ -14,13 +13,11 @@ class Cell(ABC):
 
     def __init__(
         self,
-        faces: Faces,
         filled: bool = False,
         door_space: Optional[DoorSpace] = None,
         contents: Optional[List[Any]] = None,
         coordinates: Optional[Tuple[int, int]] = None,
     ):
-        self.faces = faces
         self.filled = filled
         self.door_space = door_space
         self.contents = contents or []
@@ -28,6 +25,7 @@ class Cell(ABC):
             self._coordinates = [0, 0]
         else:
             self._coordinates = list(coordinates)
+        self._n_sides = None
 
     def set_coordinates(self, y: int, x: int) -> None:
         self._coordinates = [int(y), int(x)]
@@ -52,7 +50,7 @@ class Cell(ABC):
 
     @property
     def n_sides(self) -> int:
-        return len(self.faces)
+        return type(self)._n_sides
 
 
 class SquareCell(Cell):
@@ -60,24 +58,22 @@ class SquareCell(Cell):
     A cell for a square grid.
 
     Args:
-      faces (Optional[SquareFaces]): faces of the cell
       filled (bool, optional): flag indicating whether the cell is
         filled (default ``False``)
       door_space (Optional[DoorSpace]): kind of doorway in this cell
       contents (Optional[List[Any]]): things in this cell
     """
 
+    _n_sides = 4
+
     def __init__(
         self,
-        faces: Optional[SquareFaces] = None,
         filled: bool = False,
         door_space: Optional[DoorSpace] = None,
         contents: Optional[List[Any]] = None,
         coordinates: Optional[Tuple[int, int]] = None,
     ):
-        faces = faces or SquareFaces()
         super().__init__(
-            faces=faces,
             filled=filled,
             door_space=door_space,
             contents=contents,
@@ -90,24 +86,22 @@ class HexCell(Cell):
     A cell for a hexagonal grid.
 
     Args:
-      faces (Optional[HexFaces]): faces of the cell
       filled (bool, optional): flag indicating whether the cell is
         filled (default ``False``)
       door_space (Optional[DoorSpace]): kind of doorway in this cell
       contents (Optional[List[Any]]): things in this cell
     """
 
+    _n_sides = 6
+
     def __init__(
         self,
-        faces: Optional[HexFaces] = None,
         filled: bool = False,
         door_space: Optional[DoorSpace] = None,
         contents: Optional[List[Any]] = None,
         coordinates: Optional[Tuple[int, int]] = None,
     ):
-        faces = faces or HexFaces()
         super().__init__(
-            faces=faces,
             filled=filled,
             door_space=door_space,
             contents=contents,
