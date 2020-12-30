@@ -143,7 +143,7 @@ class DungeonRandomizer(Randomizer):
         Args:
             dungeon (Dungeon): dungeon to randomize the rooms of
         """
-        # Compute then umber
+        # Compute the number
         n_rooms = self.get_number_of_rooms(dungeon.n_rows, dungeon.n_cols)
 
         # Create rooms, randomize, and check for overlap
