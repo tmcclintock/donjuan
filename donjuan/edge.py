@@ -20,11 +20,11 @@ class Edge:
         self._cell2 = cell2
 
     @property
-    def cell1(self) -> Cell:
+    def cell1(self) -> Optional[Cell]:
         return self._cell1
 
     @property
-    def cell2(self) -> Cell:
+    def cell2(self) -> Optional[Cell]:
         return self._cell2
 
     def set_cell1(self, cell: Cell) -> None:
