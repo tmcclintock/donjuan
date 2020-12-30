@@ -4,7 +4,7 @@ from donjuan import (
     AlphaNumRoomName,
     Cell,
     Dungeon,
-    DungeonRoomRandomizer,
+    DungeonRandomizer,
     HexGrid,
     Room,
     RoomPositionRandomizer,
@@ -77,34 +77,34 @@ class RoomSizeRandomizerTest(RandomizerTestCase):
         assert not room.cells[0][0].filled
 
 
-class DungeonRoomRandomizerTest(RandomizerTestCase):
+class DungeonRandomizerTest(RandomizerTestCase):
     def test_smoke(self):
-        rng = DungeonRoomRandomizer()
+        rng = DungeonRandomizer()
         assert rng.max_room_attempts == 100
 
     def test_get_number_of_rooms(self):
         rr = RoomSizeRandomizer(max_size=2)
-        rng = DungeonRoomRandomizer(room_size_randomizer=rr)
+        rng = DungeonRandomizer(room_size_randomizer=rr)
         assert rng.get_number_of_rooms(4, 4) == 4
         assert rng.get_number_of_rooms(5, 4) == 5
         assert rng.get_number_of_rooms(5, 5) == 6
 
     def test_get_number_of_rooms_preset(self):
         rr = RoomSizeRandomizer(max_size=2)
-        rng = DungeonRoomRandomizer(max_num_rooms=3, room_size_randomizer=rr)
+        rng = DungeonRandomizer(max_num_rooms=3, room_size_randomizer=rr)
         assert rng.get_number_of_rooms(4, 4) == 3
         assert rng.get_number_of_rooms(5, 4) == 3
         assert rng.get_number_of_rooms(5, 5) == 3
 
     def test_randomize_dungeon_one_room_max(self):
-        rng = DungeonRoomRandomizer()
+        rng = DungeonRandomizer()
         rng.randomize_dungeon(self.dungeon)
         assert len(self.dungeon.rooms) == 1
         assert "A0" in self.dungeon.rooms
 
     def test_randomize_dungeon_up_to_five_rooms(self):
         rr = RoomSizeRandomizer(max_size=2)
-        rng = DungeonRoomRandomizer(room_size_randomizer=rr)
+        rng = DungeonRandomizer(room_size_randomizer=rr)
         rng.randomize_dungeon(self.dungeon)
         assert len(self.dungeon.rooms) <= 5
         assert len(self.dungeon.rooms) > 0

@@ -83,17 +83,20 @@ class RoomPositionRandomizer(Randomizer):
         return
 
 
-class DungeonRoomRandomizer(Randomizer):
+class DungeonRandomizer(Randomizer):
     """
     Randomize a dungeon by first creating rooms and then applying
-    :meth:`RoomRandomizer.room_randomize` to them.
+    room size, name, and position randomizers to sequentially generated
+    rooms.
 
     Args:
-        room_size_randomizer (RoomRandomizer): randomizer for the room size.
-            It must have a 'max_size' attribute.
-        room_name_randomizer (RoomRandomizer): randomizer for the room name
+        room_size_randomizer (Optional[RoomRandomizer]): randomizer for the
+            room size. It must have a 'max_size' attribute. If ``None`` then
+            default to a ``RoomSizeRandomizer``.
+        room_name_randomizer (RoomRandomizer): randomizer for the room name.
+            If ``None`` default to a ``AlphaNumRoomName``.
         room_position_randomizer (RoomRandomizer): randomizer for the room
-            position
+            position. If ``None`` default to a ``RoomPositionRandomizer``.
         max_num_rooms (Optional[int]): maximum number of rooms to draw,
             if ``None` then default to the :attr:`max_room_attempts`. See
             :meth:`DungeonRoomRandomizer.get_number_of_rooms` for details.
@@ -103,17 +106,19 @@ class DungeonRoomRandomizer(Randomizer):
 
     def __init__(
         self,
-        room_size_randomizer: Randomizer = RoomSizeRandomizer(),
-        room_name_randomizer: Randomizer = AlphaNumRoomName(),
-        room_position_randomizer: Randomizer = RoomPositionRandomizer(),
+        room_size_randomizer: Optional[Randomizer] = None,
+        room_name_randomizer: Optional[Randomizer] = None,
+        room_position_randomizer: Optional[Randomizer] = None,
         max_num_rooms: Optional[int] = None,
         max_room_attempts: int = 100,
     ):
         super().__init__()
-        self.room_size_randomizer = room_size_randomizer
+        self.room_size_randomizer = room_size_randomizer or RoomSizeRandomizer()
         assert hasattr(self.room_size_randomizer, "max_size")
-        self.room_name_randomizer = room_name_randomizer
-        self.room_position_randomizer = room_position_randomizer
+        self.room_name_randomizer = room_name_randomizer or AlphaNumRoomName()
+        self.room_position_randomizer = (
+            room_position_randomizer or RoomPositionRandomizer()
+        )
         self.max_num_rooms = max_num_rooms or max_room_attempts
         self.max_room_attempts = max_room_attempts
 

@@ -5,7 +5,7 @@ from unittest import TestCase
 
 import pytest
 
-from donjuan import Dungeon, DungeonRoomRandomizer, Renderer
+from donjuan import Dungeon, DungeonRandomizer, Renderer
 
 
 class RendererTest(TestCase):
@@ -42,7 +42,7 @@ class RendererTest(TestCase):
 
     @pytest.mark.slow
     def test_render_dungeon_with_rooms(self):
-        randomizer = DungeonRoomRandomizer()
+        randomizer = DungeonRandomizer()
         dungeon = Dungeon(10, 10, randomizers=[randomizer])
         dungeon.randomize()
         dungeon.emplace_rooms()

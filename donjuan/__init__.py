@@ -13,7 +13,7 @@ from .renderer import BaseRenderer, Renderer
 from .room import Room
 from .room_randomizer import (
     AlphaNumRoomName,
-    DungeonRoomRandomizer,
+    DungeonRandomizer,
     RoomPositionRandomizer,
     RoomSizeRandomizer,
 )
