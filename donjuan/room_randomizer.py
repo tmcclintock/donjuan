@@ -8,15 +8,7 @@ from donjuan.dungeon import Dungeon
 from donjuan.room import Room
 
 
-class RoomRandomizer(Randomizer):
-    """
-    Base class for randomizing properties of `Room` objects.
-    """
-
-    pass
-
-
-class RoomSizeRandomizer(RoomRandomizer):
+class RoomSizeRandomizer(Randomizer):
     """
     Randomize the size of a `Room`.
     """
@@ -51,7 +43,7 @@ class RoomSizeRandomizer(RoomRandomizer):
         return
 
 
-class AlphaNumRoomName(RoomRandomizer):
+class AlphaNumRoomName(Randomizer):
     """
     Simple room name randomizer that names rooms as alphabetical letters.
     followed by a number.
@@ -78,7 +70,7 @@ class AlphaNumRoomName(RoomRandomizer):
         return
 
 
-class RoomPositionRandomizer(RoomRandomizer):
+class RoomPositionRandomizer(Randomizer):
     """
     Randomly shift a room, assuming it has :attr:`n_cols`
     and :attr:`n_rows` attributes.
@@ -111,9 +103,9 @@ class DungeonRoomRandomizer(Randomizer):
 
     def __init__(
         self,
-        room_size_randomizer: RoomRandomizer = RoomSizeRandomizer(),
-        room_name_randomizer: RoomRandomizer = AlphaNumRoomName(),
-        room_position_randomizer: RoomRandomizer = RoomPositionRandomizer(),
+        room_size_randomizer: Randomizer = RoomSizeRandomizer(),
+        room_name_randomizer: Randomizer = AlphaNumRoomName(),
+        room_position_randomizer: Randomizer = RoomPositionRandomizer(),
         max_num_rooms: Optional[int] = None,
         max_room_attempts: int = 100,
     ):

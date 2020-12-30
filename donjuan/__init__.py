@@ -15,7 +15,6 @@ from .room_randomizer import (
     AlphaNumRoomName,
     DungeonRoomRandomizer,
     RoomPositionRandomizer,
-    RoomRandomizer,
     RoomSizeRandomizer,
 )
 from .space import Space
