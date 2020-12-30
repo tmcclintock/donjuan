@@ -13,13 +13,6 @@ class SquareGridTest(TestCase):
         sg = SquareGrid(5, 4, cells)
         assert sg is not None
 
-    def test_from_cells(self):
-        cells = [[SquareCell() for i in range(4)] for j in range(5)]
-        sg = SquareGrid.from_cells(cells)
-        assert sg.n_cols == 4
-        assert sg.n_rows == 5
-        assert isinstance(sg.cells[0][0], SquareCell)
-
     def test_cell_coordinates(self):
         sg = SquareGrid(5, 4)
         for i in range(sg.n_rows):
@@ -46,7 +39,7 @@ class SquareGridTest(TestCase):
 
     def test_reset_cell_coordinates(self):
         cells = [[SquareCell() for i in range(4)] for j in range(5)]
-        sg = SquareGrid.from_cells(cells)
+        sg = SquareGrid(5, 4, cells)
         for i in range(sg.n_rows):
             for j in range(sg.n_cols):
                 assert sg.cells[i][j].coordinates == (0, 0)
@@ -67,10 +60,3 @@ class HexGridTest(TestCase):
         assert hg is not None
         assert hg.n_rows == 5
         assert hg.n_cols == 4
-
-    def test_from_cells(self):
-        cells = [[HexCell() for i in range(4)] for j in range(5)]
-        hg = HexGrid.from_cells(cells)
-        assert hg.n_cols == 4
-        assert hg.n_rows == 5
-        assert isinstance(hg.cells[0][0], HexCell)
