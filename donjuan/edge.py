@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Optional
 
 from donjuan.cell import Cell
 from donjuan.door_space import DoorSpace
@@ -11,19 +11,13 @@ class Edge:
     Args:
         cell1 (Optional[Cell]): cell on one side of the edge
         cell2 (Optional[Cell]): cell on the other side of the edge
-        features (Dict[str, Any]): other features on this edge
     """
 
     def __init__(
-        self,
-        cell1: Optional[Cell] = None,
-        cell2: Optional[Cell] = None,
-        solid: bool = False,
-        features: Dict[str, Any] = None,
+        self, cell1: Optional[Cell] = None, cell2: Optional[Cell] = None,
     ):
         self._cell1 = cell1
         self._cell2 = cell2
-        self.features = features or {}
 
     @property
     def cell1(self) -> Cell:
@@ -40,7 +34,7 @@ class Edge:
         self._cell2 = cell
 
 
-def WallEdge(Edge):
+class WallEdge(Edge):
     """
     An edge that is a wall.
 
@@ -51,7 +45,6 @@ def WallEdge(Edge):
             wall is see-through
         cell1 (Optional[Cell]): cell on one side of the edge
         cell2 (Optional[Cell]): cell on the other side of the edge
-        features (Dict[str, Any]): other features on this edge
     """
 
     def __init__(
@@ -60,14 +53,13 @@ def WallEdge(Edge):
         transparent: bool = False,
         cell1: Optional[Cell] = None,
         cell2: Optional[Cell] = None,
-        features: Dict[str, Any] = None,
     ):
-        super().__init__(cell1, cell2, features)
+        super().__init__(cell1, cell2)
         self.solid = solid
         self.transparent = transparent
 
 
-def DoorEdge(Edge):
+class DoorEdge(Edge):
     """
     An edge with a door-like opening in it.
 
@@ -75,7 +67,6 @@ def DoorEdge(Edge):
         door_space (DoorSpace): the door-like thing on this edge
         cell1 (Optional[Cell]): cell on one side of the edge
         cell2 (Optional[Cell]): cell on the other side of the edge
-        features (Dict[str, Any]): other features on this edge
     """
 
     def __init__(
@@ -83,9 +74,8 @@ def DoorEdge(Edge):
         door_space: DoorSpace,
         cell1: Optional[Cell] = None,
         cell2: Optional[Cell] = None,
-        features: Dict[str, Any] = None,
     ):
-        super().__init__(cell1, cell2, features)
+        super().__init__(cell1, cell2)
         self._door_space = door_space
 
     @property
