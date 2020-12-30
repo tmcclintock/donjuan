@@ -8,7 +8,13 @@ from .dungeon import Dungeon
 from .face import BareFace, DoorFace, Face, Faces, HexFaces, SquareFaces
 from .grid import Grid, HexGrid, SquareGrid
 from .hallway import Hallway
-from .randomizer import DungeonRoomRandomizer, RandomFilled, Randomizer, RoomRandomizer
+from .randomizer import RandomFilled, Randomizer
 from .renderer import BaseRenderer, Renderer
 from .room import Room
+from .room_randomizer import (
+    AlphaNumRoomName,
+    DungeonRoomRandomizer,
+    RoomPositionRandomizer,
+    RoomSizeRandomizer,
+)
 from .space import Space
