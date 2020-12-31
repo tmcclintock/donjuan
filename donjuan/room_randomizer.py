@@ -87,8 +87,8 @@ class RoomPositionRandomizer(Randomizer):
         bottom = max(room.cell_coordinates, key=lambda x: x[0])[0]
         right = max(room.cell_coordinates, key=lambda x: x[1])[1]
         # Draw random positions and shift
-        room.shift_horizontal(random.randint(0, dungeon.n_cols - right))
-        room.shift_vertical(random.randint(0, dungeon.n_rows - bottom))
+        room.shift_horizontal(random.randint(0, dungeon.n_cols - right - 1))
+        room.shift_vertical(random.randint(0, dungeon.n_rows - bottom - 1))
         return
 
 
