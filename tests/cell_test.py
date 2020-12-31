@@ -8,6 +8,10 @@ class SquareCellTest(TestCase):
         c = SquareCell()
         assert c is not None
 
+    def test_space(self):
+        c = SquareCell()
+        assert c.space is None
+
     def test_filled(self):
         c = SquareCell()
         assert not c.filled

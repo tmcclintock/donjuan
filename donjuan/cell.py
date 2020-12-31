@@ -48,7 +48,7 @@ class Cell(ABC):
         return tuple(self._coordinates)
 
     @property
-    def space(self) -> Type["Space"]:
+    def space(self) -> Optional[Type["Space"]]:
         """``Space`` this cell is a part of."""
         return self._space
 
