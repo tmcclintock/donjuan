@@ -15,6 +15,9 @@ class Space(ABC):
 
     def __init__(self, cells: Optional[Set[Cell]] = None):
         self._cells = cells or set()
+        self.reset_cell_coordinates()
+
+    def reset_cell_coordinates(self) -> None:
         self._cell_coordinates = set(cell.coordinates for cell in self.cells)
 
     @property
@@ -68,9 +71,8 @@ class Space(ABC):
             n (int): number to increment vertical position of cells
         """
         for cell in self.cells:
-            _ = self.cell_coordinates.remove(cell.coordinates)
             cell.set_y(cell.y + int(n))
-            self.cell_coordinates.add(cell.coordinates)
+        self.reset_cell_coordinates()
         return
 
     def shift_horizontal(self, n: int) -> None:
@@ -81,7 +83,6 @@ class Space(ABC):
             n (int): number to increment horizontal position of cells
         """
         for cell in self.cells:
-            _ = self.cell_coordinates.remove(cell.coordinates)
             cell.set_x(cell.x + int(n))
-            self.cell_coordinates.add(cell.coordinates)
+        self.reset_cell_coordinates()
         return
