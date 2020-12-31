@@ -46,6 +46,13 @@ class RoomTest(TestCase):
             for j in range(5):
                 assert (i + 100, j) in r.cell_coordinates
 
+    def test_shift_vertical_one_row(self):
+        r = Room(self.cells)
+        r.shift_vertical(1)
+        for i in range(4):
+            for j in range(5):
+                assert (i + 1, j) in r.cell_coordinates
+
     def test_shift_horizontal(self):
         r = Room(self.cells)
         r.shift_horizontal(100)
@@ -54,6 +61,13 @@ class RoomTest(TestCase):
         for i in range(4):
             for j in range(5):
                 assert (i, j + 100) in r.cell_coordinates
+
+    def test_shift_horizontal_one_col(self):
+        r = Room(self.cells)
+        r.shift_horizontal(1)
+        for i in range(4):
+            for j in range(5):
+                assert (i, j + 1) in r.cell_coordinates
 
     def test_overlaps(self):
         r1 = Room(self.cells)
