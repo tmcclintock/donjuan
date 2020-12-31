@@ -19,12 +19,13 @@ class RandomizerTestCase(TestCase):
         self.grid = SquareGrid(n_rows=4, n_cols=5)
         self.hexgrid = HexGrid(n_rows=4, n_cols=5)
         self.dungeon = Dungeon(grid=self.grid)
+        self.room = Room(cells=set([SquareCell()]))
 
 
 class AlphaNumRoomNameTest(RandomizerTestCase):
     def test_names(self):
         rr = AlphaNumRoomName()
-        room = Room()
+        room = self.room
         rr.randomize_room_name(room)
         assert room.name == "A0"
         rr.randomize_room_name(room)
@@ -47,13 +48,12 @@ class RoomPositionRandomizerTest(RandomizerTestCase):
         # Make a 1x1 room. try moving it around.
         rr = RoomPositionRandomizer()
         rr.seed(123)
-        cells = [[SquareCell()]]
-        room = Room(cells=cells)
-        assert room.cells[0][0].coordinates == (0, 0)
+        room = self.room
+        assert (0, 0) in room.cell_coordinates
         # Try moving it. 5% chance this fails if the seed is not set
         # Works with seed 123
         rr.randomize_room_position(room, self.dungeon)
-        assert room.cells[0][0].coordinates != (0, 0)
+        assert (0, 0) not in room.cell_coordinates
 
 
 class RoomSizeRandomizerTest(RandomizerTestCase):
@@ -64,17 +64,15 @@ class RoomSizeRandomizerTest(RandomizerTestCase):
         assert rng.max_size == 4
         assert issubclass(rng.cell_type, Cell)
 
-    def test_randomize_room(self):
+    def test_randomize_room_size(self):
         room = Room()
-        assert room.cells == [[]]
+        assert room.cells == set()
         rng = RoomSizeRandomizer()
         rng.randomize_room_size(room)
-        assert len(room.cells) >= rng.min_size
-        assert len(room.cells) <= rng.max_size
-        assert len(room.cells[0]) >= rng.min_size
-        assert len(room.cells[0]) <= rng.max_size
-        assert isinstance(room.cells[0][0], Cell)
-        assert not room.cells[0][0].filled
+        assert len(room.cells) >= rng.min_size ** 2
+        assert len(room.cells) <= rng.max_size ** 2
+        for cell in room.cells:
+            assert not cell.filled
 
 
 class DungeonRandomizerTest(RandomizerTestCase):
