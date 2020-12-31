@@ -55,7 +55,7 @@ class DungeonTest(TestCase):
     def test_emplace_room(self):
         grid = SquareGrid(3, 4)
         d = Dungeon(grid=grid)
-        cs = [[SquareCell(filled=False, coordinates=(1, 2))]]
+        cs = set([SquareCell(filled=False, coordinates=(1, 2))])
         room = Room(cells=cs)
         d.emplace_room(room)
         for i in range(d.n_rows):
@@ -67,7 +67,7 @@ class DungeonTest(TestCase):
 
     def test_emplace_rooms(self):
         grid = SquareGrid(3, 4)
-        cs = [[SquareCell(filled=False, coordinates=(1, 2))]]
+        cs = set([SquareCell(filled=False, coordinates=(1, 2))])
         room = Room(cells=cs)
         d = Dungeon(grid=grid, rooms={"0": room})
         d.emplace_rooms()

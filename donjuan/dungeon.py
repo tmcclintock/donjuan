@@ -66,8 +66,6 @@ class Dungeon:
         Args:
             room (Room): room to emplace in the :attr:`grid`
         """
-        for i in range(room.n_rows):
-            for j in range(room.n_cols):
-                cell = room.cells[i][j]
-                self.grid.cells[cell.y][cell.x] = cell
+        for cell in room.cells:
+            self.grid.cells[cell.y][cell.x] = cell
         return
