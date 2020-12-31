@@ -36,10 +36,11 @@ class RoomSizeRandomizer(Randomizer):
 
         # Create empty cells and set them in the room
         cells = [
-            [self.cell_type(filled=False, coordinates=(i, j)) for j in range(height)]
+            self.cell_type(filled=False, coordinates=(i, j))
+            for j in range(height)
             for i in range(width)
         ]
-        room.set_cells(cells)
+        room.insert_cell_list(cells)
         return
 
 
@@ -72,14 +73,22 @@ class AlphaNumRoomName(Randomizer):
 
 class RoomPositionRandomizer(Randomizer):
     """
-    Randomly shift a room, assuming it has :attr:`n_cols`
-    and :attr:`n_rows` attributes.
+    Randomly shift a room, assuming its left edge is at column 0 and it's top
+    edge is at row 0.
     """
 
     def randomize_room_position(self, room: Room, dungeon: Dungeon) -> None:
+        """
+        Args:
+            room (Room): room to move around
+            dungeon (Dungeon): dungeon to move the room around in
+        """
+        # Determing the right-most and bottom-most cells of the room
+        bottom = max(room.cell_coordinates, key=lambda x: x[0])[0]
+        right = max(room.cell_coordinates, key=lambda x: x[1])[1]
         # Draw random positions and shift
-        room.shift_horizontal(random.randint(0, dungeon.n_cols - room.n_cols))
-        room.shift_vertical(random.randint(0, dungeon.n_rows - room.n_rows))
+        room.shift_horizontal(random.randint(0, dungeon.n_cols - right - 1))
+        room.shift_vertical(random.randint(0, dungeon.n_rows - bottom - 1))
         return
 
 

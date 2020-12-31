@@ -1,12 +1,15 @@
 import os
 
 import matplotlib as mpl
+import numpy as np
 
-from donjuan import Dungeon, DungeonRoomRandomizer, Renderer, RoomRandomizer
+from donjuan import Dungeon, DungeonRandomizer, Renderer, RoomSizeRandomizer
+
+np.random.seed(123)
 
 # Create and randomize the dungeon
-room_randomizer = RoomRandomizer(max_size=4)
-randomizer = DungeonRoomRandomizer(max_num_rooms=10, room_randomizers=[room_randomizer])
+room_randomizer = RoomSizeRandomizer(max_size=8, min_size=6)
+randomizer = DungeonRandomizer(max_num_rooms=10, room_size_randomizer=room_randomizer)
 randomizer.seed(54321)
 dungeon = Dungeon(30, 30, randomizers=[randomizer])
 

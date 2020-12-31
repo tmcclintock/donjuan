@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import Optional, Set, Union
 
 from donjuan.cell import Cell
 from donjuan.space import Space
@@ -6,14 +6,13 @@ from donjuan.space import Space
 
 class Room(Space):
     """
-    A room in a dungeon. Rooms can have names. In future versions, rooms
-    will have additional features.
+    A room in a dungeon. A room has is a named ``Space``.
     """
 
     def __init__(
-        self, cells: Optional[List[List[Cell]]] = None, name: Union[int, str] = ""
+        self, cells: Optional[Set[Cell]] = None, name: Union[int, str] = "",
     ):
-        super().__init__(cells=cells or [[]])
+        super().__init__(cells=cells)
         assert isinstance(name, (int, str))
         self._name = name
 
@@ -24,13 +23,3 @@ class Room(Space):
     def set_name(self, name: Union[int, str]) -> None:
         self._name = name
         return
-
-    @property
-    def n_rows(self) -> int:
-        if self.cells == [[]]:
-            return 0  # special case
-        return len(self.cells)
-
-    @property
-    def n_cols(self) -> int:
-        return len(self.cells[0])

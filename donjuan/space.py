@@ -1,48 +1,71 @@
 from abc import ABC
-from itertools import chain
-from typing import List
+from typing import List, Optional, Set, Tuple
 
 from donjuan.cell import Cell
 
 
 class Space(ABC):
     """
-    A space is a section of a dungeon composed of cells.
+    A space is a section of a dungeon composed of `Cell`s. This object
+    contains these cells in a ``set`` under the property :attr:`cells`.
+
+    Args:
+        cells (Optional[Set[Cell]]): cells that make up this space
     """
 
-    def __init__(self, cells: List[List[Cell]]):
-        self._cells = cells
+    def __init__(self, cells: Optional[Set[Cell]] = None):
+        self._cells = cells or set()
+        self.assign_space_to_cells()
+        self.reset_cell_coordinates()
+
+    def assign_space_to_cells(self) -> None:
+        """Set the :attr:`space` attribute for each `Cell` to ``self``."""
+        for cell in self.cells:
+            cell.set_space(self)
+
+    def reset_cell_coordinates(self) -> None:
+        self._cell_coordinates = set(cell.coordinates for cell in self.cells)
 
     @property
-    def cells(self) -> List[List[Cell]]:
+    def cells(self) -> Set[Cell]:
         return self._cells
 
-    def set_cells(self, cells: List[List[Cell]]) -> None:
-        assert isinstance(cells, list)
+    @property
+    def cell_coordinates(self) -> Set[Tuple[int, int]]:
+        return self._cell_coordinates
+
+    def insert_cell_list(self, cells: List[Cell]) -> None:
+        """
+        Insert a list of cells into the :attr:`cells` set, with
+        keys being the coordinates of the cells.
+
+        Args:
+            cells (List[Cell]): list of cells to insert
+        """
         if len(cells) > 0:
-            assert isinstance(cells[0], list)
-            if len(cells[0]) > 0:
-                assert isinstance(cells[0][0], Cell)
-        self._cells = cells
+            assert isinstance(cells[0], Cell)
+        for cell in cells:
+            self.cells.add(cell)
+            self.cell_coordinates.add(cell.coordinates)
 
     def overlaps(self, other: "Space") -> bool:
         """
-        Compare the cells of this room to the other room to determine
-        whether they overlap or not. Note, this algorithm is ``O(N*M)``
-        where ``N`` is the number of cells in this room and ``M`` is
-        the number of cells in the other room.
+        Compare the cells of this space to the other space to determine
+        whether they overlap or not. Note, this algorithm is ``O(N)``
+        where ``N`` is the number of cells in this space, since set
+        lookup is ``O(1)``.
 
         Args:
-            other (Room): other room to check against
+            other (Space): other space to check against
 
         Returns:
             ``True`` if they overlap, ``False`` if not
         """
         # Loop over all of this space's cells
-        for c1 in chain.from_iterable(self._cells):
-            for c2 in chain.from_iterable(other._cells):
-                if c1.coordinates == c2.coordinates:
-                    return True
+        for cell in self.cells:
+            if cell.coordinates in other.cell_coordinates:
+                return True
+
         # No overlap
         return False
 
@@ -53,8 +76,9 @@ class Space(ABC):
         Args:
             n (int): number to increment vertical position of cells
         """
-        for c in chain.from_iterable(self.cells):
-            c.set_y(c.y + int(n))
+        for cell in self.cells:
+            cell.set_y(cell.y + int(n))
+        self.reset_cell_coordinates()
         return
 
     def shift_horizontal(self, n: int) -> None:
@@ -64,6 +88,7 @@ class Space(ABC):
         Args:
             n (int): number to increment horizontal position of cells
         """
-        for c in chain.from_iterable(self.cells):
-            c.set_x(c.x + int(n))
+        for cell in self.cells:
+            cell.set_x(cell.x + int(n))
+        self.reset_cell_coordinates()
         return
