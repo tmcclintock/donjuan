@@ -18,6 +18,7 @@ class Cell(ABC):
         contents: Optional[List[Any]] = None,
         coordinates: Optional[Tuple[int, int]] = None,
         space: Optional["Space"] = None,
+        edges: Optional[List["Edge"]] = None,
     ):
         self.filled = filled
         self.door_space = door_space
@@ -27,9 +28,14 @@ class Cell(ABC):
         else:
             self._coordinates = list(coordinates)
         self._space = space
+        self._edges = edges or [None] * self.n_sides
 
     def set_coordinates(self, y: int, x: int) -> None:
         self._coordinates = [int(y), int(x)]
+
+    def set_edges(self, edges: List["Edge"]) -> None:
+        assert len(edges) == self.n_sides, f"{len(edges)} vs {self.n_sides}"
+        self._edges = edges
 
     def set_space(self, space: Type["Space"]) -> None:
         self._space = space
@@ -43,6 +49,10 @@ class Cell(ABC):
     @property
     def coordinates(self) -> Tuple[int, int]:
         return tuple(self._coordinates)
+
+    @property
+    def edges(self) -> List["Edge"]:
+        return self._edges
 
     @property
     def space(self) -> Optional[Type["Space"]]:

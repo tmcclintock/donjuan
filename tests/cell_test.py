@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from donjuan import HexCell, SquareCell
+from donjuan import Edge, HexCell, SquareCell
 
 
 class SquareCellTest(TestCase):
@@ -11,6 +11,13 @@ class SquareCellTest(TestCase):
     def test_space(self):
         c = SquareCell()
         assert c.space is None
+
+    def test_edges(self):
+        c = SquareCell()
+        assert c.edges == [None] * c.n_sides
+        edges = [Edge() for i in range(4)]
+        c.set_edges(edges)
+        assert c.edges is edges
 
     def test_filled(self):
         c = SquareCell()
