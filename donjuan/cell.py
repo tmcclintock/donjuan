@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Type
 
 from donjuan.door_space import DoorSpace
 from donjuan.face import Faces, HexFaces, SquareFaces
@@ -19,6 +19,7 @@ class Cell(ABC):
         door_space: Optional[DoorSpace] = None,
         contents: Optional[List[Any]] = None,
         coordinates: Optional[Tuple[int, int]] = None,
+        space: Optional["Space"] = None,
     ):
         self.faces = faces
         self.filled = filled
@@ -28,9 +29,13 @@ class Cell(ABC):
             self._coordinates = [0, 0]
         else:
             self._coordinates = list(coordinates)
+        self._space = space
 
     def set_coordinates(self, y: int, x: int) -> None:
         self._coordinates = [int(y), int(x)]
+
+    def set_space(self, space: Type["Space"]) -> None:
+        self._space = space
 
     def set_x(self, x: int) -> None:
         self._coordinates[1] = int(x)
@@ -41,6 +46,11 @@ class Cell(ABC):
     @property
     def coordinates(self) -> Tuple[int, int]:
         return tuple(self._coordinates)
+
+    @property
+    def space(self) -> Type["Space"]:
+        """``Space`` this cell is a part of."""
+        return self._space
 
     @property
     def x(self) -> int:

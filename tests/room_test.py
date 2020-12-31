@@ -37,6 +37,11 @@ class RoomTest(TestCase):
         assert len(r.cell_coordinates) == 1
         assert r.cell_coordinates == set(((0, 0),))
 
+    def test_set_space_to_cells(self):
+        r = Room(self.cells)
+        for cell in r.cells:
+            assert cell.space is r
+
     def test_shift_vertical(self):
         r = Room(self.cells)
         r.shift_vertical(100)

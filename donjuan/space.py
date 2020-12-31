@@ -15,7 +15,13 @@ class Space(ABC):
 
     def __init__(self, cells: Optional[Set[Cell]] = None):
         self._cells = cells or set()
+        self.assign_space_to_cells()
         self.reset_cell_coordinates()
+
+    def assign_space_to_cells(self) -> None:
+        """Set the :attr:`space` attribute for each `Cell` to ``self``."""
+        for cell in self.cells:
+            cell.set_space(self)
 
     def reset_cell_coordinates(self) -> None:
         self._cell_coordinates = set(cell.coordinates for cell in self.cells)
