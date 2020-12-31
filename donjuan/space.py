@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import List, Optional, Set
+from typing import List, Optional, Set, Tuple
 
 from donjuan.cell import Cell
 
@@ -15,10 +15,15 @@ class Space(ABC):
 
     def __init__(self, cells: Optional[Set[Cell]] = None):
         self._cells = cells or set()
+        self._cell_coordinates = set(cell.coordinates for cell in self.cells)
 
     @property
     def cells(self) -> Set[Cell]:
         return self._cells
+
+    @property
+    def cell_coordinates(self) -> Set[Tuple[int, int]]:
+        return self._cell_coordinates
 
     def insert_cell_list(self, cells: List[Cell]) -> None:
         """
@@ -32,6 +37,7 @@ class Space(ABC):
             assert isinstance(cells[0], Cell)
         for cell in cells:
             self.cells.add(cell)
+            self.cell_coordinates.add(cell.coordinates)
 
     def overlaps(self, other: "Space") -> bool:
         """
@@ -48,7 +54,7 @@ class Space(ABC):
         """
         # Loop over all of this space's cells
         for cell in self.cells:
-            if cell in other.cells:
+            if cell.coordinates in other.cell_coordinates:
                 return True
 
         # No overlap
@@ -62,7 +68,9 @@ class Space(ABC):
             n (int): number to increment vertical position of cells
         """
         for cell in self.cells:
+            _ = self.cell_coordinates.remove(cell.coordinates)
             cell.set_y(cell.y + int(n))
+            self.cell_coordinates.add(cell.coordinates)
         return
 
     def shift_horizontal(self, n: int) -> None:
@@ -73,5 +81,7 @@ class Space(ABC):
             n (int): number to increment horizontal position of cells
         """
         for cell in self.cells:
+            _ = self.cell_coordinates.remove(cell.coordinates)
             cell.set_x(cell.x + int(n))
+            self.cell_coordinates.add(cell.coordinates)
         return
