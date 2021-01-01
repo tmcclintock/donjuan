@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import List, Optional
 
 from donjuan.cell import Cell, HexCell, SquareCell
@@ -134,17 +134,9 @@ class Grid(ABC):
                     )
         return
 
+    @abstractmethod
     def link_cells_to_edges(self) -> None:
-        for i in range(self.n_rows):
-            for j in range(self.n_cols):
-                self.cells.set_edges(
-                    [
-                        self.edges[0][i][j],
-                        self.edges[1][i][j],
-                        self.edges[i + 1][j],
-                        self.edges[i][j + 1],
-                    ]
-                )
+        pass
 
 
 class SquareGrid(Grid):
@@ -160,6 +152,18 @@ class SquareGrid(Grid):
     ):
         super().__init__(n_rows, n_cols, cells)
 
+    def link_cells_to_edges(self) -> None:
+        for i in range(self.n_rows):
+            for j in range(self.n_cols):
+                self.cells[i][j].set_edges(
+                    [
+                        self.edges[0][i][j],
+                        self.edges[1][i][j],
+                        self.edges[0][i + 1][j],
+                        self.edges[1][i][j + 1],
+                    ]
+                )
+
 
 class HexGrid(Grid):
     """
@@ -174,3 +178,17 @@ class HexGrid(Grid):
         self, n_rows: int, n_cols: int, cells: Optional[List[List[HexCell]]] = None
     ):
         super().__init__(n_rows, n_cols, cells)
+
+    def link_cells_to_edges(self) -> None:
+        for i in range(self.n_rows):
+            for j in range(self.n_cols):
+                self.cells[i][j].set_edges(
+                    [
+                        self.edges[0][i][j],
+                        self.edges[1][i][j],
+                        self.edges[2][i][j],
+                        self.edges[0][i + 1][j],
+                        self.edges[1][i][j + 1],
+                        self.edges[2][i][j + 1],
+                    ]
+                )
