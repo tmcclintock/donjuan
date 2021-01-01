@@ -40,7 +40,10 @@ class Grid(ABC):
         self._cells = cells
 
         # Create the edge grids
-        self.set_edges(edges)
+        edges = edges or self.init_edges()
+        self.check_edges(edges)
+        self._edges = edges
+        self.link_edges_to_cells()
 
     def get_filled_grid(self) -> List[List[bool]]:
         """
@@ -65,7 +68,7 @@ class Grid(ABC):
         return self._cells
 
     @property
-    def edge_grid(self) -> List[List[List[Edge]]]:
+    def edges(self) -> List[List[List[Edge]]]:
         return self._edges
 
     def reset_cell_coordinates(self) -> None:
@@ -78,15 +81,57 @@ class Grid(ABC):
                 self.cells[i][j].set_coordinates(i, j)
         return
 
-    def set_edges(self, edges: Optional[List[List[List[Edge]]]]):
-        if edges is not None:
-            msg = f"edge/cell grid mismatch: {len(edges)} vs {self.cell_type._n_sides // 2}"
-            assert len(edges) == self.cell_type._n_sides // 2, msg
-        else:
-            edges = []
+    def check_edges(self, edges: Optional[List[List[List[Edge]]]]) -> None:
+        """
+        Check the dimensions of the `edges`.
+        """
+        msg = f"edge/cell grid mismatch: {len(edges)} vs {self.cell_type._n_sides // 2}"
+        assert len(edges) == self.cell_type._n_sides // 2, msg
+        h = edges[0]
+        assert len(h) == self.n_rows + 1
+        assert len(h[0]) == self.n_cols
+        for v_edge in edges[1:]:
+            assert len(v_edge) == self.n_rows
+            assert len(v_edge[0]) == self.n_cols + 1
+        return
 
-            # Horizontal edges
-        pass
+    def init_edges(self) -> List[List[List[Edge]]]:
+        edges = []
+        # Horizontal edges
+        edges.append(
+            [[Edge() for i in range(self.n_cols)] for j in range(self.n_rows + 1)]
+        )
+        # Non-horizontal edges
+        for i in range(self.cell_type._n_sides // 2 - 1):
+            edges.append(
+                [[Edge() for i in range(self.n_cols + 1)] for j in range(self.n_rows)]
+            )
+        return edges
+
+    def link_edges_to_cells(self) -> None:
+        """
+        For an `Edge`, the :attr:`Edge.cell1` always points to either the left
+        or upper `Cell`. The :attr:`Edge.cell2` always points to the right or
+        the bottom.
+        """
+        # Horizontal edges first
+        for i in range(self.n_rows + 1):
+            for j in range(self.n_cols):
+                self.edges[0][i][j].set_cell1(self.cells[i - 1][j] if i > 0 else None)
+                self.edges[0][i][j].set_cell2(
+                    self.cells[i][j] if i < self.n_rows else None
+                )
+        # Non-horizontal edges
+        for k in range(1, len(self.edges)):
+            for i in range(self.n_rows):
+                for j in range(self.n_cols + 1):
+                    self.edges[k][i][j].set_cell1(
+                        self.cells[i][j - 1] if j > 0 else None
+                    )
+                    self.edges[k][i][j].set_cell2(
+                        self.cells[i][j] if j < self.n_cols else None
+                    )
+        return
 
 
 class SquareGrid(Grid):
