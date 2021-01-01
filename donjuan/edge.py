@@ -33,30 +33,13 @@ class Edge:
     def set_cell2(self, cell: Cell) -> None:
         self._cell2 = cell
 
-
-class WallEdge(Edge):
-    """
-    An edge that is a wall.
-
-    Args:
-        solid (bool, optional): default is ``True``. Flag whether this is a
-            solid wall
-        transparent (bool, optional): default is ``False``. Flag whetehr this
-            wall is see-through
-        cell1 (Optional[Cell]): cell on one side of the edge
-        cell2 (Optional[Cell]): cell on the other side of the edge
-    """
-
-    def __init__(
-        self,
-        solid: bool = True,
-        transparent: bool = False,
-        cell1: Optional[Cell] = None,
-        cell2: Optional[Cell] = None,
-    ):
-        super().__init__(cell1, cell2)
-        self.solid = solid
-        self.transparent = transparent
+    @property
+    def is_wall(self) -> bool:
+        return (
+            (self.cell1 is None)
+            or (self.cell2 is None)
+            or (self.cell1.filled != self.cell2.filled)
+        )
 
 
 class DoorEdge(Edge):

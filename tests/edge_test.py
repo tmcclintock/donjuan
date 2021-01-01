@@ -1,14 +1,14 @@
 from unittest import TestCase
 
-from donjuan import Door, DoorEdge, Edge, SquareCell, WallEdge
+from donjuan import Door, DoorEdge, Edge, SquareCell
 
 
 class EdgeSetUp(TestCase):
     def setUp(self):
         super().setUp()
         # Make two cells separated horizontally
-        self.cell1 = SquareCell(coordinates=(0, 0))
-        self.cell2 = SquareCell(coordinates=(0, 1))
+        self.cell1 = SquareCell(coordinates=(0, 0), filled=True)
+        self.cell2 = SquareCell(coordinates=(0, 1), filled=False)
 
 
 class EdgeTest(EdgeSetUp):
@@ -29,6 +29,7 @@ class EdgeTest(EdgeSetUp):
         edge.set_cell2(self.cell2)
         assert isinstance(edge.cell1, SquareCell)
         assert isinstance(edge.cell2, SquareCell)
+        assert edge.is_wall
 
 
 class DoorEdgeTest(EdgeSetUp):
@@ -47,11 +48,3 @@ class DoorEdgeTest(EdgeSetUp):
         edge.set_door_space(door2)
         assert edge.door_space is door2
         assert edge.door_space is not door1
-
-
-class WallEdgeTest(EdgeSetUp):
-    def test_smoke(self):
-        edge = WallEdge(solid=False, transparent=True)
-        assert edge is not None
-        assert edge.solid is False
-        assert edge.transparent is True
