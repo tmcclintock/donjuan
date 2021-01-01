@@ -44,6 +44,7 @@ class Grid(ABC):
         self.check_edges(edges)
         self._edges = edges
         self.link_edges_to_cells()
+        self.link_cells_to_edges()
 
     def get_filled_grid(self) -> List[List[bool]]:
         """
@@ -132,6 +133,18 @@ class Grid(ABC):
                         self.cells[i][j] if j < self.n_cols else None
                     )
         return
+
+    def link_cells_to_edges(self) -> None:
+        for i in range(self.n_rows):
+            for j in range(self.n_cols):
+                self.cells.set_edges(
+                    [
+                        self.edges[0][i][j],
+                        self.edges[1][i][j],
+                        self.edges[i + 1][j],
+                        self.edges[i][j + 1],
+                    ]
+                )
 
 
 class SquareGrid(Grid):
