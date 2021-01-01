@@ -1,7 +1,6 @@
 from typing import Optional
 
 from donjuan.cell import Cell
-from donjuan.door_space import DoorSpace
 
 
 class Edge:
@@ -45,30 +44,3 @@ class Edge:
                 and self.cell2.space is not None
             )
         )
-
-
-class DoorEdge(Edge):
-    """
-    An edge with a door-like opening in it.
-
-    Args:
-        door_space (DoorSpace): the door-like thing on this edge
-        cell1 (Optional[Cell]): cell on one side of the edge
-        cell2 (Optional[Cell]): cell on the other side of the edge
-    """
-
-    def __init__(
-        self,
-        door_space: DoorSpace,
-        cell1: Optional[Cell] = None,
-        cell2: Optional[Cell] = None,
-    ):
-        super().__init__(cell1, cell2)
-        self._door_space = door_space
-
-    @property
-    def door_space(self) -> DoorSpace:
-        return self._door_space
-
-    def set_door_space(self, door_space: DoorSpace) -> None:
-        self._door_space = door_space
