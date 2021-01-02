@@ -61,11 +61,13 @@ class Dungeon:
 
     def emplace_room(self, room: Room) -> None:
         """
-        Replace the cells in the :attr:`grid` with the cells of the `Room`.
+        Replace the cells in the :attr:`grid` with the cells of the `Room`,
+        and automatically link them with the `Edge`s in the `Grid`.
 
         Args:
             room (Room): room to emplace in the :attr:`grid`
         """
         for cell in room.cells:
             self.grid.cells[cell.y][cell.x] = cell
+        self.grid.link_edges_to_cells()
         return
