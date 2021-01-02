@@ -38,9 +38,5 @@ class Edge:
             (self.cell1 is None)
             or (self.cell2 is None)
             or (self.cell1.filled != self.cell2.filled)
-            or (
-                self.cell1.space != self.cell2.space
-                and self.cell1.space is not None
-                and self.cell2.space is not None
-            )
+            or (self.cell1.space != self.cell2.space)
         )
