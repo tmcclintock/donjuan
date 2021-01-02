@@ -44,7 +44,6 @@ class Grid(ABC):
         self.check_edges(edges)
         self._edges = edges
         self.link_edges_to_cells()
-        self.link_cells_to_edges()
 
     def get_filled_grid(self) -> List[List[bool]]:
         """
@@ -132,6 +131,7 @@ class Grid(ABC):
                     self.edges[k][i][j].set_cell2(
                         self.cells[i][j] if j < self.n_cols else None
                     )
+        self.link_cells_to_edges()
         return
 
     @abstractmethod
