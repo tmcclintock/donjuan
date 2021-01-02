@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import List, Optional, Set, Tuple
+from typing import List, Optional, Set, Tuple, Union
 
 from donjuan.cell import Cell
 
@@ -13,7 +13,9 @@ class Space(ABC):
         cells (Optional[Set[Cell]]): cells that make up this space
     """
 
-    def __init__(self, cells: Optional[Set[Cell]] = None):
+    def __init__(self, cells: Optional[Set[Cell]] = None, name: Union[int, str] = ""):
+        assert isinstance(name, (int, str))
+        self._name = name
         self._cells = cells or set()
         self.assign_space_to_cells()
         self.reset_cell_coordinates()
@@ -33,6 +35,10 @@ class Space(ABC):
     @property
     def cell_coordinates(self) -> Set[Tuple[int, int]]:
         return self._cell_coordinates
+
+    @property
+    def name(self) -> Union[int, str]:
+        return str(self._name)
 
     def insert_cell_list(self, cells: List[Cell]) -> None:
         """
@@ -68,6 +74,10 @@ class Space(ABC):
 
         # No overlap
         return False
+
+    def set_name(self, name: Union[int, str]) -> None:
+        assert isinstance(name, (int, str))
+        self._name = name
 
     def shift_vertical(self, n: int) -> None:
         """
