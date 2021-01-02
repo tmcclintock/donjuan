@@ -1,6 +1,7 @@
 from typing import Dict, List, Optional
 
 from donjuan.grid import Grid, SquareGrid
+from donjuan.hallway import Hallway
 from donjuan.room import Room
 
 
@@ -11,18 +12,27 @@ class Dungeon:
         n_cols: Optional[int] = 5,
         grid: Optional[Grid] = None,
         rooms: Optional[Dict[str, Room]] = None,
+        hallways: Optional[Dict[str, Hallway]] = None,
         randomizers: Optional[List["Randomizer"]] = None,
     ):
         self._grid = grid or SquareGrid(n_rows, n_cols)
         self._rooms = rooms or {}
+        self._hallways = hallways or {}
         self._randomizers = randomizers or []
 
     def add_room(self, room: Room) -> None:
         self._rooms[room.name] = room
 
+    def add_hallway(self, hallway: Hallway) -> None:
+        self.hallways[hallway.name] = hallway
+
     @property
     def grid(self) -> Grid:
         return self._grid
+
+    @property
+    def hallways(self) -> Dict[str, Hallway]:
+        return self._hallways
 
     @property
     def n_cols(self) -> int:
