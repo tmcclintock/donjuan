@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from typing import List, Optional, Tuple, Union
 
 from donjuan.cell import Cell
@@ -9,16 +10,19 @@ class Hallway(Space):
     A hallway in a dungeon. It has a start and end cell.
 
     Args:
-        ordered_cells (Optional[List[Cell]]): ordered list of cells, where the
-            order defines the path of the hallway
+        ordered_cells (Optional[Sequence[Cell]]): ordered list of cells, where
+            the order defines the path of the hallway. If ``None`` defaults
+            to an empty list.
         name (Union[int, str], optional): defaults to '', the name of the
             hallway
     """
 
     def __init__(
-        self, ordered_cells: Optional[List[Cell]] = None, name: Union[int, str] = "",
+        self,
+        ordered_cells: Optional[Sequence[Cell]] = None,
+        name: Union[int, str] = "",
     ):
-        self._ordered_cells = ordered_cells or []
+        self._ordered_cells = ordered_cells or list()
         super().__init__(cells=set(self.ordered_cells), name=name)
 
     @property
@@ -28,7 +32,7 @@ class Hallway(Space):
         extra cells that may be associated with this object (i.e. those
         off of the "path"). For the set of all cells, use :attr:`cells`.
         """
-        return self._ordered_cells
+        return list(self._ordered_cells)
 
     @property
     def end_cell(self) -> Cell:
