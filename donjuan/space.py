@@ -1,6 +1,6 @@
 from abc import ABC
 from collections.abc import Iterable
-from typing import List, Optional, Set, Tuple, Union
+from typing import Optional, Set, Tuple, Union
 
 from donjuan.cell import Cell
 
@@ -49,18 +49,6 @@ class Space(ABC):
             self.cells.add(cell)
             self.cell_coordinates.add(cell.coordinates)
         return
-
-    def insert_cell_list(self, cells: List[Cell]) -> None:
-        """
-        Insert a list of cells into the :attr:`cells` set, with
-        keys being the coordinates of the cells.
-
-        Args:
-            cells (List[Cell]): list of cells to insert
-        """
-        if len(cells) > 0:
-            assert isinstance(cells[0], Cell)
-        self.add_cells(cells)
 
     def overlaps(self, other: "Space") -> bool:
         """
