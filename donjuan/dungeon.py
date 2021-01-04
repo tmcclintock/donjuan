@@ -3,6 +3,7 @@ from typing import Dict, List, Optional
 from donjuan.grid import Grid, SquareGrid
 from donjuan.hallway import Hallway
 from donjuan.room import Room
+from donjuan.space import Space
 
 
 class Dungeon:
@@ -66,18 +67,18 @@ class Dungeon:
         """
 
         for room_name, room in self.rooms.items():
-            self.emplace_room(room)
+            self.emplace_space(room)
         return
 
-    def emplace_room(self, room: Room) -> None:
+    def emplace_space(self, space: Space) -> None:
         """
-        Replace the cells in the :attr:`grid` with the cells of the `Room`,
+        Replace the cells in the :attr:`grid` with the cells of the `Space`,
         and automatically link them with the `Edge`s in the `Grid`.
 
         Args:
-            room (Room): room to emplace in the :attr:`grid`
+            space (Space): room to emplace in the :attr:`grid`
         """
-        for cell in room.cells:
+        for cell in space.cells:
             self.grid.cells[cell.y][cell.x] = cell
         self.grid.link_edges_to_cells()
         return

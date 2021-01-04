@@ -4,6 +4,7 @@ from typing import Optional
 from donjuan.cell import Cell
 from donjuan.dungeon import Dungeon
 from donjuan.grid import Grid
+from donjuan.hallway import Hallway
 from donjuan.room import Room
 
 
@@ -22,6 +23,10 @@ class Randomizer:
 
     def randomize_grid(self, grid: Grid) -> None:
         """Randomize properties of the `Grid`"""
+        pass  # pragma: no cover
+
+    def randomize_hallway(self, hallway: Hallway) -> None:
+        """Randomize properties of the `Hallway`"""
         pass  # pragma: no cover
 
     def randomize_room_size(self, room: Room, *args) -> None:
