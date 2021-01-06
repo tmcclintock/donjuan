@@ -1,5 +1,3 @@
-.. |TRAVIS| image:: https://travis-ci.com/tmcclintock/donjuan.svg?branch=main
-	    :target: https://travis-ci.com/github/tmcclintock/donjuan
 .. |BUILD STATUS| image:: https://github.com/tmcclintock/donjuan/workflows/Build%20Status/badge.svg?branch=main
 	    :target: https://github.com/tmcclintock/donjuan/actions
 .. |COVERALLS| image:: https://coveralls.io/repos/github/tmcclintock/donjuan/badge.svg?branch=main
