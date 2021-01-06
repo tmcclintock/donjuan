@@ -52,12 +52,12 @@ class DungeonTest(TestCase):
         assert d.n_rows == 3
         assert d.n_cols == 4
 
-    def test_emplace_room(self):
+    def test_emplace_space(self):
         grid = SquareGrid(3, 4)
         d = Dungeon(grid=grid)
         cs = set([SquareCell(filled=False, coordinates=(1, 2))])
         room = Room(cells=cs)
-        d.emplace_room(room)
+        d.emplace_space(room)
         for i in range(d.n_rows):
             for j in range(d.n_cols):
                 if i == 1 and j == 2:
