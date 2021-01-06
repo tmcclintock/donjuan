@@ -1,5 +1,6 @@
 from abc import ABC
-from typing import List, Optional, Set, Tuple
+from collections.abc import Iterable
+from typing import Optional, Set, Tuple, Union
 
 from donjuan.cell import Cell
 
@@ -13,7 +14,9 @@ class Space(ABC):
         cells (Optional[Set[Cell]]): cells that make up this space
     """
 
-    def __init__(self, cells: Optional[Set[Cell]] = None):
+    def __init__(self, cells: Optional[Set[Cell]] = None, name: Union[int, str] = ""):
+        assert isinstance(name, (int, str))
+        self._name = name
         self._cells = cells or set()
         self.assign_space_to_cells()
         self.reset_cell_coordinates()
@@ -34,19 +37,23 @@ class Space(ABC):
     def cell_coordinates(self) -> Set[Tuple[int, int]]:
         return self._cell_coordinates
 
-    def insert_cell_list(self, cells: List[Cell]) -> None:
+    @property
+    def name(self) -> Union[int, str]:
+        return str(self._name)
+
+    def add_cells(self, cells: Iterable[Cell]) -> None:
         """
-        Insert a list of cells into the :attr:`cells` set, with
-        keys being the coordinates of the cells.
+        Add cells to the set of cells in this space. Cells are added to
+        both the :attr:`cells` set and the cell coordinates to the
+        :attr:`cell_coordinates` set.
 
         Args:
-            cells (List[Cell]): list of cells to insert
+            cells (Iterable[Cell]): any iterable collection of cells
         """
-        if len(cells) > 0:
-            assert isinstance(cells[0], Cell)
         for cell in cells:
             self.cells.add(cell)
             self.cell_coordinates.add(cell.coordinates)
+        return
 
     def overlaps(self, other: "Space") -> bool:
         """
@@ -68,6 +75,10 @@ class Space(ABC):
 
         # No overlap
         return False
+
+    def set_name(self, name: Union[int, str]) -> None:
+        assert isinstance(name, (int, str))
+        self._name = name
 
     def shift_vertical(self, n: int) -> None:
         """

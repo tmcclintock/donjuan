@@ -40,7 +40,7 @@ class RoomSizeRandomizer(Randomizer):
             for j in range(height)
             for i in range(width)
         ]
-        room.insert_cell_list(cells)
+        room.add_cells(cells)
         return
 
 

@@ -29,10 +29,10 @@ class RoomTest(TestCase):
         r.set_name("catdog")
         assert r.name == "catdog"
 
-    def test_insert_cell_list(self):
+    def test_add_cells(self):
         r = Room()
         assert len(r.cells) == 0
-        r.insert_cell_list([SquareCell()])
+        r.add_cells([SquareCell()])
         assert len(r.cells) == 1
         assert len(r.cell_coordinates) == 1
         assert r.cell_coordinates == set(((0, 0),))
