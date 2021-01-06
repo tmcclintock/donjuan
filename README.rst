@@ -6,7 +6,7 @@
 .. |LICENSE| image:: https://img.shields.io/badge/License-CC0%201.0-lightgrey.svg
 	     :target: http://creativecommons.org/publicdomain/zero/1.0/
 
-|TRAVIS| |COVERALLS| |LICENSE|
+|BUILD STATUS| |COVERALLS| |LICENSE|
 
 DonJuan
 =======
