@@ -38,5 +38,5 @@ jobs:
     - name: Send coveralls
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        coveralls
+        run: |
+          coveralls
