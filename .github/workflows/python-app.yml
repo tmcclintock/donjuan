@@ -35,8 +35,9 @@ jobs:
       run: |
         coverage run -m pytest
         coverage report -m
+    - name: Get secret token
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
     - name: Send coveralls
       run: |
         coveralls
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
