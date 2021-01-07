@@ -1,6 +1,5 @@
 from abc import ABC
-from collections.abc import Iterable
-from typing import Optional, Set, Tuple, Union
+from typing import Optional, Sequence, Set, Tuple, Union
 
 from donjuan.cell import Cell
 
@@ -41,14 +40,14 @@ class Space(ABC):
     def name(self) -> Union[int, str]:
         return str(self._name)
 
-    def add_cells(self, cells: Iterable[Cell]) -> None:
+    def add_cells(self, cells: Sequence[Cell]) -> None:
         """
         Add cells to the set of cells in this space. Cells are added to
         both the :attr:`cells` set and the cell coordinates to the
         :attr:`cell_coordinates` set.
 
         Args:
-            cells (Iterable[Cell]): any iterable collection of cells
+            cells (Sequence[Cell]): any iterable collection of cells
         """
         for cell in cells:
             self.cells.add(cell)
