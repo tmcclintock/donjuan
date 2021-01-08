@@ -15,7 +15,10 @@ class Edge:
     """
 
     def __init__(
-        self, cell1: Optional[Cell] = None, cell2: Optional[Cell] = None, has_door: bool = False,
+        self,
+        cell1: Optional[Cell] = None,
+        cell2: Optional[Cell] = None,
+        has_door: bool = False,
     ):
         self._cell1 = cell1
         self._cell2 = cell2
@@ -38,7 +41,7 @@ class Edge:
     @property
     def is_wall(self) -> bool:
         return (
-            (not self.has_door) 
+            (not self.has_door)
             or (self.cell1 is None)
             or (self.cell2 is None)
             or (self.cell1.filled != self.cell2.filled)
