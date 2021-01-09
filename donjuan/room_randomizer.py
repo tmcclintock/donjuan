@@ -90,3 +90,7 @@ class RoomPositionRandomizer(Randomizer):
         room.shift_horizontal(random.randint(0, dungeon.n_cols - right - 1))
         room.shift_vertical(random.randint(0, dungeon.n_rows - bottom - 1))
         return
+
+
+class RoomEntranceRandomizer(Randomizer):
+    pass
