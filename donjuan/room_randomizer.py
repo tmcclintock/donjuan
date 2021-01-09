@@ -100,6 +100,21 @@ class RoomEntrancesRandomizer(Randomizer):
     (``N``) plus a uniform random integer from 0 to ``N``.
     """
 
+    def __init__(self, max_attempts: int = 1000):
+        self.max_attempts = max_attempts
+
     def gen_num_entrances(self, cells: Set[Cell]) -> int:
         N = int(sqrt(len(cells))) // 2 + 1
         return N + random.randint(0, N)
+
+    """
+    def randomize_room_entrances(self, room: Room, dungeon: Dungeon) -> None:
+        n_entrances = self.gen_num_entrances(room.cells)
+        n_success = 0
+        for i in range(self.max_attempts):
+            # Choose a random cell
+            cell = random.sample(room.cells)[0]
+            coords: Tuple[int, int] = cell.coordinates
+
+            # Check its neighbors
+    """
