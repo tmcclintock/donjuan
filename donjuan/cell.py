@@ -1,6 +1,8 @@
 from abc import ABC
-from typing import Any, List, Optional, Tuple, Type
+from collections.abc import Sequence
+from typing import Any, List, Optional, Tuple, Type, Union
 
+from donjuan.coordinates import Coordinates
 from donjuan.door_space import DoorSpace
 
 
@@ -16,7 +18,7 @@ class Cell(ABC):
         filled: bool = False,
         door_space: Optional[DoorSpace] = None,
         contents: Optional[List[Any]] = None,
-        coordinates: Optional[Tuple[int, int]] = None,
+        coordinates: Optional[Union[Sequence[int, int], Coordinates]] = None,
         space: Optional["Space"] = None,
         edges: Optional[List["Edge"]] = None,
     ):
@@ -24,14 +26,17 @@ class Cell(ABC):
         self.door_space = door_space
         self.contents = contents or []
         if coordinates is None:
-            self._coordinates = [0, 0]
+            self._coordinates = Coordinates(0, 0)
         else:
-            self._coordinates = list(coordinates)
+            if isinstance(coordinates, Sequence):
+                self._coordinates = Coordinates.from_sequence(coordinates)
+            else:
+                self._coordinates = coordinates
         self._space = space
         self._edges = edges or [None] * self.n_sides
 
     def set_coordinates(self, y: int, x: int) -> None:
-        self._coordinates = [int(y), int(x)]
+        self._coordinates = Coordinates(x, y)
 
     def set_edges(self, edges: List["Edge"]) -> None:
         assert len(edges) == self.n_sides, f"{len(edges)} vs {self.n_sides}"
@@ -41,14 +46,14 @@ class Cell(ABC):
         self._space = space
 
     def set_x(self, x: int) -> None:
-        self._coordinates[1] = int(x)
+        self._coordinates.x = int(x)
 
     def set_y(self, y: int) -> None:
-        self._coordinates[0] = int(y)
+        self._coordinates.y = int(y)
 
     @property
     def coordinates(self) -> Tuple[int, int]:
-        return tuple(self._coordinates)
+        return (self._coordinates.y, self._coordinates.x)
 
     @property
     def edges(self) -> List["Edge"]:
@@ -61,11 +66,11 @@ class Cell(ABC):
 
     @property
     def x(self) -> int:
-        return self._coordinates[1]
+        return self._coordinates.x
 
     @property
     def y(self) -> int:
-        return self._coordinates[0]
+        return self._coordinates.y
 
     @property
     def n_sides(self) -> int:
@@ -90,7 +95,7 @@ class SquareCell(Cell):
         filled: bool = False,
         door_space: Optional[DoorSpace] = None,
         contents: Optional[List[Any]] = None,
-        coordinates: Optional[Tuple[int, int]] = None,
+        coordinates: Optional[Union[Coordinates, Tuple[int, int]]] = None,
     ):
         super().__init__(
             filled=filled,
@@ -118,7 +123,7 @@ class HexCell(Cell):
         filled: bool = False,
         door_space: Optional[DoorSpace] = None,
         contents: Optional[List[Any]] = None,
-        coordinates: Optional[Tuple[int, int]] = None,
+        coordinates: Optional[Union[Coordinates, Tuple[int, int]]] = None,
     ):
         super().__init__(
             filled=filled,
