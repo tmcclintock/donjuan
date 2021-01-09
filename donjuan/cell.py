@@ -53,7 +53,9 @@ class Cell(ABC):
 
     @property
     def coordinates(self) -> Tuple[int, int]:
-        return (self._coordinates.y, self._coordinates.x)
+        return self._coordinates
+
+    #         return (self._coordinates.y, self._coordinates.x)
 
     @property
     def edges(self) -> List["Edge"]:

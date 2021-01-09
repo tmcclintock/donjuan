@@ -84,8 +84,8 @@ class RoomPositionRandomizer(Randomizer):
             dungeon (Dungeon): dungeon to move the room around in
         """
         # Determing the right-most and bottom-most cells of the room
-        bottom = max(room.cell_coordinates, key=lambda x: x[0])[0]
-        right = max(room.cell_coordinates, key=lambda x: x[1])[1]
+        bottom = max(room.cell_coordinates, key=lambda r: r.x).x
+        right = max(room.cell_coordinates, key=lambda r: r.y).y
         # Draw random positions and shift
         room.shift_horizontal(random.randint(0, dungeon.n_cols - right - 1))
         room.shift_vertical(random.randint(0, dungeon.n_rows - bottom - 1))

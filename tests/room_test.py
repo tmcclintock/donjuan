@@ -46,7 +46,7 @@ class RoomTest(TestCase):
         r = Room(self.cells)
         r.shift_vertical(100)
         for cell in r.cells:
-            assert cell.coordinates[0] >= 100, cell.coordinates
+            assert cell.coordinates.y >= 100, cell.coordinates
         for i in range(4):
             for j in range(5):
                 assert (i + 100, j) in r.cell_coordinates
@@ -62,7 +62,7 @@ class RoomTest(TestCase):
         r = Room(self.cells)
         r.shift_horizontal(100)
         for cell in r.cells:
-            assert cell.coordinates[1] >= 100, cell.coordinates
+            assert cell.coordinates.x >= 100, cell.coordinates
         for i in range(4):
             for j in range(5):
                 assert (i, j + 100) in r.cell_coordinates

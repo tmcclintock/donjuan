@@ -78,7 +78,9 @@ class Dungeon:
         Args:
             space (Space): room to emplace in the :attr:`grid`
         """
+        print(len(self.grid.cells), len(self.grid.cells[0]))
         for cell in space.cells:
+            # print(cell.y, cell.x)
             self.grid.cells[cell.y][cell.x] = cell
         self.grid.link_edges_to_cells()
         return

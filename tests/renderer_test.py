@@ -44,6 +44,7 @@ class RendererTest(TestCase):
     def test_render_dungeon_with_rooms(self):
         randomizer = DungeonRandomizer()
         dungeon = Dungeon(10, 10, randomizers=[randomizer])
+        print(len(dungeon.grid.cells), len(dungeon.grid.cells[0]))
         dungeon.randomize()
         dungeon.emplace_rooms()
         renderer = Renderer()
