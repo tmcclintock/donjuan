@@ -106,11 +106,19 @@ class DungeonRandomizer(Randomizer):
             if not overlaps:
                 dungeon.add_room(room)
 
-            # Open entrances to the room
-            self.room_entrance_randomizer.randomize_room_entrances(room, dungeon)
-
             # Check for max attempts
             i += 1
             if i == self.max_room_attempts:
                 break
+
+        # Emplace the rooms
+        dungeon.emplace_rooms()
+
+        # Open entrances the rooms
+        for room_name, room in dungeon.rooms.items():
+            self.room_entrance_randomizer.randomize_room_entrances(room, dungeon)
+            dungeon.room_entrances[room.name] = []
+            for entrance in room.entrances:
+                dungeon.room_entrances[room.name].append(entrance)
+
         return

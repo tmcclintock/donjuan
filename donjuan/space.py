@@ -1,22 +1,27 @@
 from abc import ABC
-from typing import Optional, Sequence, Set, Tuple, Union
+from typing import List, Optional, Sequence, Set, Tuple, Union
 
 from donjuan.cell import Cell
+from donjuan.edge import Edge
 
 
 class Space(ABC):
     """
     A space is a section of a dungeon composed of `Cell`s. This object
     contains these cells in a ``set`` under the property :attr:`cells`.
+    It also has a :attr:`name` and knows about any entrances to the room
+    (a list of `Edge` objects) via the :attr:`entrances` property.
 
     Args:
         cells (Optional[Set[Cell]]): cells that make up this space
+        name (Union[int, str], optional): defaults to '', the room name
     """
 
     def __init__(self, cells: Optional[Set[Cell]] = None, name: Union[int, str] = ""):
         assert isinstance(name, (int, str))
         self._name = name
         self._cells = cells or set()
+        self.entrances: List[Edge] = []
         self.assign_space_to_cells()
         self.reset_cell_coordinates()
 

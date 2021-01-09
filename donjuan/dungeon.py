@@ -1,5 +1,6 @@
 from typing import Dict, List, Optional
 
+from donjuan.edge import Edge
 from donjuan.grid import Grid, SquareGrid
 from donjuan.hallway import Hallway
 from donjuan.room import Room
@@ -20,6 +21,7 @@ class Dungeon:
         self._rooms = rooms or {}
         self._hallways = hallways or {}
         self._randomizers = randomizers or []
+        self.room_entrances: Dict[str, List[Edge]] = {}
 
     def add_room(self, room: Room) -> None:
         self._rooms[room.name] = room
@@ -81,4 +83,5 @@ class Dungeon:
         for cell in space.cells:
             self.grid.cells[cell.y][cell.x] = cell
         self.grid.link_edges_to_cells()
+        assert cell.edges is not None, "problem linking edges to cell"
         return

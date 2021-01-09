@@ -73,6 +73,10 @@ class RoomEntrancesRandomizerTest(RandomizerTestCase):
         for ind, cell in enumerate(cell_list):
             i = ind // 2
             j = ind % 2
+            assert cell.y == i
+            assert cell.x == j
+            assert cell.edges is not None
+            assert cell in cells
             assert cell is self.dungeon.grid.cells[i][j]
         rr.randomize_room_entrances(room, self.dungeon)
 
@@ -137,6 +141,6 @@ class DungeonRandomizerTest(RandomizerTestCase):
     def test_randomize_dungeon_up_to_five_rooms(self):
         rr = RoomSizeRandomizer(max_size=2)
         rng = DungeonRandomizer(room_size_randomizer=rr)
-        rng.randomize_dungeon(self.dungeon)
+        rng.randomize_dungeon(self.dungeon)  # dungeon is 4x5
         assert len(self.dungeon.rooms) <= 5
         assert len(self.dungeon.rooms) > 0

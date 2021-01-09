@@ -100,21 +100,46 @@ class RoomEntrancesRandomizer(Randomizer):
     (``N``) plus a uniform random integer from 0 to ``N``.
     """
 
-    def __init__(self, max_attempts: int = 1000):
+    def __init__(self, max_attempts: int = 100):
         self.max_attempts = max_attempts
 
     def gen_num_entrances(self, cells: Set[Cell]) -> int:
         N = int(sqrt(len(cells))) // 2 + 1
         return N + random.randint(0, N)
 
-    """
-    def randomize_room_entrances(self, room: Room, dungeon: Dungeon) -> None:
-        n_entrances = self.gen_num_entrances(room.cells)
-        n_success = 0
-        for i in range(self.max_attempts):
-            # Choose a random cell
-            cell = random.sample(room.cells)[0]
-            coords: Tuple[int, int] = cell.coordinates
+    def randomize_room_entrances(self, room: Room, *args) -> None:
+        """
+        Randomly open edges of cells in a `Room`. The cells in the room must
+        already be linked to edges in a `Grid`. See
+        :meth:`~donjuan.dungeon.emplace_rooms`.
 
-            # Check its neighbors
-    """
+        .. note::
+
+            This algorithm does not allow for a cell in a room to have two
+            entrances.
+
+        Args:
+            room (Room): room to try to create entrances for
+        """
+        n_entrances = self.gen_num_entrances(room.cells)
+        i = 0
+
+        # Shuffle cells
+        cell_list = random.sample(room.cells, k=len(room.cells))
+        for cell in cell_list:
+            assert cell.edges is not None, "cell edges not linked"
+
+            # If an edge has a wall, set it to having a door
+            # and record it
+            # TODO: objectify this method so that cells can have many entrances
+            edges = random.sample(cell.edges, k=len(cell.edges))
+            for edge in edges:
+                if edge.is_wall:
+                    edge.has_door = True
+                    room.entrances.append(edge)
+                    break
+
+            i += 1  # increment attempts
+            if i >= self.max_attempts or len(room.entrances) >= n_entrances:
+                break
+        return
