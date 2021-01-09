@@ -68,6 +68,7 @@ class RoomEntrancesRandomizerTest(RandomizerTestCase):
         ]
         cells = set(cell_list)
         room = Room(cells=cells)
+        self.dungeon.add_room(room)
         self.dungeon.emplace_space(room)
         # double check emplace is working
         for ind, cell in enumerate(cell_list):
@@ -79,6 +80,7 @@ class RoomEntrancesRandomizerTest(RandomizerTestCase):
             assert cell in cells
             assert cell is self.dungeon.grid.cells[i][j]
         rr.randomize_room_entrances(room, self.dungeon)
+        assert len(room.entrances) > 0
 
 
 class RoomPositionRandomizerTest(RandomizerTestCase):
@@ -137,6 +139,8 @@ class DungeonRandomizerTest(RandomizerTestCase):
         rng.randomize_dungeon(self.dungeon)
         assert len(self.dungeon.rooms) == 1
         assert "A0" in self.dungeon.rooms
+        room = self.dungeon.rooms["A0"]
+        assert len(room.entrances) == len(self.dungeon.room_entrances[room.name])
 
     def test_randomize_dungeon_up_to_five_rooms(self):
         rr = RoomSizeRandomizer(max_size=2)
