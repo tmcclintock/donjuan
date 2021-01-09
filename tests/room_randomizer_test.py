@@ -7,6 +7,7 @@ from donjuan import (
     DungeonRandomizer,
     HexGrid,
     Room,
+    RoomEntrancesRandomizer,
     RoomPositionRandomizer,
     RoomSizeRandomizer,
     SquareCell,
@@ -41,6 +42,20 @@ class AlphaNumRoomNameTest(RandomizerTestCase):
         assert room.name == "B1"
         rr.randomize_room_name(room)
         assert room.name == "C1"
+
+
+class RoomEntrancesRandomizerTest(RandomizerTestCase):
+    def test_smoke(self):
+        rr = RoomEntrancesRandomizer()
+        assert rr is not None
+
+    def test_gen_num_entrances(self):
+        rr = RoomEntrancesRandomizer()
+        cells = set([SquareCell() for _ in range(16)])  # 4x4 room
+        # Make many draws of entrance numbers
+        n = [rr.gen_num_entrances(cells) for _ in range(1000)]
+        assert min(n) == 3
+        assert max(n) == 6
 
 
 class RoomPositionRandomizerTest(RandomizerTestCase):

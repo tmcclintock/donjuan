@@ -5,7 +5,7 @@ from donjuan.randomizer import Randomizer
 from donjuan.room import Room
 from donjuan.room_randomizer import (
     AlphaNumRoomName,
-    RoomEntranceRandomizer,
+    RoomEntrancesRandomizer,
     RoomPositionRandomizer,
     RoomSizeRandomizer,
 )
@@ -20,7 +20,7 @@ class DungeonRandomizer(Randomizer):
     Args:
         room_entrance_randomizer (Optional[Randomizer]): randomizer for the
             entrances of a room. If ``None`` then default to a
-            ``RoomEntranceRandomizer``.
+            ``RoomEntrancesRandomizer``.
         room_size_randomizer (Optional[Randomizer]): randomizer for the
             room size. It must have a 'max_size' attribute. If ``None`` then
             default to a ``RoomSizeRandomizer``.
@@ -46,7 +46,7 @@ class DungeonRandomizer(Randomizer):
     ):
         super().__init__()
         self.room_entrance_randomizer = (
-            room_entrance_randomizer or RoomEntranceRandomizer()
+            room_entrance_randomizer or RoomEntrancesRandomizer()
         )
         self.room_size_randomizer = room_size_randomizer or RoomSizeRandomizer()
         assert hasattr(self.room_size_randomizer, "max_size")
@@ -105,6 +105,9 @@ class DungeonRandomizer(Randomizer):
 
             if not overlaps:
                 dungeon.add_room(room)
+
+            # Open entrances to the room
+            self.room_entrance_randomizer.randomize_room_entrances(room, dungeon)
 
             # Check for max attempts
             i += 1

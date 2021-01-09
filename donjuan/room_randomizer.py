@@ -1,6 +1,7 @@
 import random
+from math import sqrt
 from string import ascii_uppercase
-from typing import Type
+from typing import Set, Type
 
 from donjuan.cell import Cell, SquareCell
 from donjuan.dungeon import Dungeon
@@ -92,5 +93,13 @@ class RoomPositionRandomizer(Randomizer):
         return
 
 
-class RoomEntranceRandomizer(Randomizer):
-    pass
+class RoomEntrancesRandomizer(Randomizer):
+    """
+    Randomizes the number of entrances on a room. The number is picked to be
+    the square root of the number of cells in the room divided by 2 plus 1
+    (``N``) plus a uniform random integer from 0 to ``N``.
+    """
+
+    def gen_num_entrances(self, cells: Set[Cell]) -> int:
+        N = int(sqrt(len(cells))) // 2 + 1
+        return N + random.randint(0, N)
