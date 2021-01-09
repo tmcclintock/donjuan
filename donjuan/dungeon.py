@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from donjuan.edge import Edge
 from donjuan.grid import Grid, SquareGrid
@@ -21,7 +21,7 @@ class Dungeon:
         self._rooms = rooms or {}
         self._hallways = hallways or {}
         self._randomizers = randomizers or []
-        self.room_entrances: Dict[str, List[Edge]] = {}
+        self.room_entrances: Dict[Union[int, str], List[Edge]] = {}
 
     def add_room(self, room: Room) -> None:
         self._rooms[room.name] = room
