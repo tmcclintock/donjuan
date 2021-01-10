@@ -3,7 +3,6 @@ from typing import Optional
 
 from donjuan import Cell, Grid, DoorSpace, Door,Portcullis,Archway
 
-
 class Randomizer:
     """
     Class for randomizing features of a dungeon.
@@ -16,7 +15,7 @@ class Randomizer:
     def randomize_grid(self, grid: Grid) -> None:
         """Randomize properties of the `Grid`"""
         pass  # pragma: no cover
-    def randomize_door(self, cell: DoorSpace):
+    def randomize_door(self, cell: door_space):
         """Randomize properties of the `DoorSpace`"""
         pass #pragma: no cover
 
@@ -46,9 +45,9 @@ class RandomFilled(Randomizer):
         return
 class DoorSpaceRandomizer(Randomizer):
     """
-    Randomly set the :attrs: of the DoorSpace and select a DoorSpace type (Door, Archway, Portcullis).
+    Randomly set the attributes of the DoorSpace subclass (Door, Archway, Portcullis).
     """
-    def randomize_doorspace(self, door_space:DoorSpace):
+    def randomize_doorspace(self, door_space:door_space):
         #
         door_types = [Door, Portcullis, Archway]
         material_types = ["wood","metal","stone"]
@@ -64,10 +63,25 @@ class DoorSpaceRandomizer(Randomizer):
         selected_type = door_types[random.randint(0,len(door_types) - 1)]()
 
         if(isinstance(selected_type, Door)):
-            door_space = Door(secret=secret,locked=locked,closed=closed,jammed=jammed,blocked=blocked,broken=broken,material=material)
+            door_space.secret=secret
+            door_space.locked=locked
+            door_space.closed=closed
+            door_space.jammed=jammed
+            door_space.blocked=blocked
+            door_space.broken=broken
+            door_space.material=material
         elif(isinstance(selected_type, Portcullis)):
-            door_space = Portcullis(locked=locked,closed=closed,jammed=jammed,broken=broken,material=material)
+            door_space.locked=locked
+            door_space.closed=closed
+            door_space.jammed=jammed
+            door_space.broken=broken
+            door_space.material=material
         elif(isinstance(selected_type, Archway)):
-            door_space = Archway(material=material,blocked=blocked,broken=broken,secret=secret)
-        return door_space
+            door_space.material=material
+            door_space.blocked=blocked
+            door_space.broken=broken
+            door_space.secret=secret
+        else:
+            raise Exception("Unknown Door Type!")
+        return
         
