@@ -1,12 +1,12 @@
-.. |TRAVIS| image:: https://travis-ci.com/tmcclintock/donjuan.svg?branch=main
-	    :target: https://travis-ci.com/github/tmcclintock/donjuan
+.. |BUILD STATUS| image:: https://github.com/tmcclintock/donjuan/workflows/Build%20Status/badge.svg?branch=main
+	    :target: https://github.com/tmcclintock/donjuan/actions
 .. |COVERALLS| image:: https://coveralls.io/repos/github/tmcclintock/donjuan/badge.svg?branch=main
 	       :target: https://coveralls.io/github/tmcclintock/donjuan?branch=main
 
 .. |LICENSE| image:: https://img.shields.io/badge/License-CC0%201.0-lightgrey.svg
 	     :target: http://creativecommons.org/publicdomain/zero/1.0/
 
-|TRAVIS| |COVERALLS| |LICENSE|
+|BUILD STATUS| |COVERALLS| |LICENSE|
 
 DonJuan
 =======

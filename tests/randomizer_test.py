@@ -1,12 +1,13 @@
 from unittest import TestCase
 
-from donjuan import HexGrid, RandomFilled, Randomizer, SquareGrid
+from donjuan import Dungeon, HexGrid, RandomFilled, Randomizer, SquareGrid
 
 
 class RandomizerTestCase(TestCase):
     def setUp(self):
         self.grid = SquareGrid(n_rows=4, n_cols=5)
         self.hexgrid = HexGrid(n_rows=4, n_cols=5)
+        self.dungeon = Dungeon(grid=self.grid)
 
 
 class RandomizerTest(RandomizerTestCase):
@@ -29,7 +30,7 @@ class RandomFilledTest(RandomizerTestCase):
         grid = self.grid
         for i in range(grid.n_rows):
             for j in range(grid.n_cols):
-                assert not grid.cells[i][j].filled
+                assert grid.cells[i][j].filled
         rng.randomize_grid(grid)
         # Test that at least one cell became filled
         for i in range(grid.n_rows):
@@ -44,7 +45,7 @@ class RandomFilledTest(RandomizerTestCase):
         grid = self.hexgrid
         for i in range(grid.n_rows):
             for j in range(grid.n_cols):
-                assert not grid.cells[i][j].filled
+                assert grid.cells[i][j].filled
         rng.randomize_grid(grid)
         # Test that at least one cell became filled
         for i in range(grid.n_rows):
