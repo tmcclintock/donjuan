@@ -9,6 +9,7 @@ from .dungeon_randomizer import DungeonRandomizer
 from .edge import Edge
 from .grid import Grid, HexGrid, SquareGrid
 from .hallway import Hallway
+from .hallway_randomizer import HallwayPathRandomizer
 from .randomizer import RandomFilled, Randomizer
 from .renderer import BaseRenderer, Renderer
 from .room import Room
