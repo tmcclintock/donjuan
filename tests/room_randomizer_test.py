@@ -7,6 +7,7 @@ from donjuan import (
     DungeonRandomizer,
     HexGrid,
     Room,
+    RoomEntrancesRandomizer,
     RoomPositionRandomizer,
     RoomSizeRandomizer,
     SquareCell,
@@ -41,6 +42,45 @@ class AlphaNumRoomNameTest(RandomizerTestCase):
         assert room.name == "B1"
         rr.randomize_room_name(room)
         assert room.name == "C1"
+
+
+class RoomEntrancesRandomizerTest(RandomizerTestCase):
+    def test_smoke(self):
+        rr = RoomEntrancesRandomizer()
+        assert rr is not None
+
+    def test_gen_num_entrances(self):
+        rr = RoomEntrancesRandomizer()
+        cells = set([SquareCell() for _ in range(16)])  # 4x4 room
+        # Make many draws of entrance numbers
+        n = [rr.gen_num_entrances(cells) for _ in range(1000)]
+        assert min(n) == 3
+        assert max(n) == 6
+
+    def test_randomize_room_entrances(self):
+        rr = RoomEntrancesRandomizer()
+        # Room in the top left corner
+        cell_list = [
+            SquareCell(coordinates=(0, 0)),
+            SquareCell(coordinates=(0, 1)),
+            SquareCell(coordinates=(1, 0)),
+            SquareCell(coordinates=(1, 1)),
+        ]
+        cells = set(cell_list)
+        room = Room(cells=cells)
+        self.dungeon.add_room(room)
+        self.dungeon.emplace_space(room)
+        # double check emplace is working
+        for ind, cell in enumerate(cell_list):
+            i = ind // 2
+            j = ind % 2
+            assert cell.y == i
+            assert cell.x == j
+            assert cell.edges is not None
+            assert cell in cells
+            assert cell is self.dungeon.grid.cells[i][j]
+        rr.randomize_room_entrances(room, self.dungeon)
+        assert len(room.entrances) > 0
 
 
 class RoomPositionRandomizerTest(RandomizerTestCase):
@@ -99,10 +139,12 @@ class DungeonRandomizerTest(RandomizerTestCase):
         rng.randomize_dungeon(self.dungeon)
         assert len(self.dungeon.rooms) == 1
         assert "A0" in self.dungeon.rooms
+        room = self.dungeon.rooms["A0"]
+        assert len(room.entrances) == len(self.dungeon.room_entrances[room.name])
 
     def test_randomize_dungeon_up_to_five_rooms(self):
         rr = RoomSizeRandomizer(max_size=2)
         rng = DungeonRandomizer(room_size_randomizer=rr)
-        rng.randomize_dungeon(self.dungeon)
+        rng.randomize_dungeon(self.dungeon)  # dungeon is 4x5
         assert len(self.dungeon.rooms) <= 5
         assert len(self.dungeon.rooms) > 0

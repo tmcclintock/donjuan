@@ -17,6 +17,7 @@ class RoomTest(TestCase):
         assert r.cells == set()
         assert r.cell_coordinates == set()
         assert r.name == ""
+        assert r.entrances == []
 
     def test_name(self):
         r = Room(name="testroom")

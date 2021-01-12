@@ -1,10 +1,11 @@
 import random
+from math import sqrt
 from string import ascii_uppercase
-from typing import Optional, Type
+from typing import Set, Type
 
-from donjuan import Randomizer
 from donjuan.cell import Cell, SquareCell
 from donjuan.dungeon import Dungeon
+from donjuan.randomizer import Randomizer
 from donjuan.room import Room
 
 
@@ -92,96 +93,53 @@ class RoomPositionRandomizer(Randomizer):
         return
 
 
-class DungeonRandomizer(Randomizer):
+class RoomEntrancesRandomizer(Randomizer):
     """
-    Randomize a dungeon by first creating rooms and then applying
-    room size, name, and position randomizers to sequentially generated
-    rooms.
-
-    Args:
-        room_size_randomizer (Optional[RoomRandomizer]): randomizer for the
-            room size. It must have a 'max_size' attribute. If ``None`` then
-            default to a ``RoomSizeRandomizer``.
-        room_name_randomizer (RoomRandomizer): randomizer for the room name.
-            If ``None`` default to a ``AlphaNumRoomName``.
-        room_position_randomizer (RoomRandomizer): randomizer for the room
-            position. If ``None`` default to a ``RoomPositionRandomizer``.
-        max_num_rooms (Optional[int]): maximum number of rooms to draw,
-            if ``None` then default to the :attr:`max_room_attempts`. See
-            :meth:`DungeonRoomRandomizer.get_number_of_rooms` for details.
-        max_room_attempts (int, optional): default is 100. Maximum number of
-            attempts to generate rooms.
+    Randomizes the number of entrances on a room. The number is picked to be
+    the square root of the number of cells in the room divided by 2 plus 1
+    (``N``) plus a uniform random integer from 0 to ``N``.
     """
 
-    def __init__(
-        self,
-        room_size_randomizer: Optional[Randomizer] = None,
-        room_name_randomizer: Optional[Randomizer] = None,
-        room_position_randomizer: Optional[Randomizer] = None,
-        max_num_rooms: Optional[int] = None,
-        max_room_attempts: int = 100,
-    ):
-        super().__init__()
-        self.room_size_randomizer = room_size_randomizer or RoomSizeRandomizer()
-        assert hasattr(self.room_size_randomizer, "max_size")
-        self.room_name_randomizer = room_name_randomizer or AlphaNumRoomName()
-        self.room_position_randomizer = (
-            room_position_randomizer or RoomPositionRandomizer()
-        )
-        self.max_num_rooms = max_num_rooms or max_room_attempts
-        self.max_room_attempts = max_room_attempts
+    def __init__(self, max_attempts: int = 100):
+        self.max_attempts = max_attempts
 
-    def get_number_of_rooms(self, dungeon_n_rows: int, dungeon_n_cols: int) -> int:
+    def gen_num_entrances(self, cells: Set[Cell]) -> int:
+        N = int(sqrt(len(cells))) // 2 + 1
+        return N + random.randint(0, N)
+
+    def randomize_room_entrances(self, room: Room, *args) -> None:
         """
-        Randomly determine the number of rooms based on the size
-        of the incoming grid or the :attr:`max_num_rooms` attribute,
-        whichever is less.
+        Randomly open edges of cells in a `Room`. The cells in the room must
+        already be linked to edges in a `Grid`. See
+        :meth:`~donjuan.dungeon.emplace_rooms`.
+
+        .. note::
+
+            This algorithm does not allow for a cell in a room to have two
+            entrances.
 
         Args:
-            dungeon_n_rows (int): number of rows
-            dungeon_n_cols (int): number of columns
+            room (Room): room to try to create entrances for
         """
-        dungeon_area = dungeon_n_rows * dungeon_n_cols
-        max_room_area = self.room_size_randomizer.max_size ** 2
-        return min(self.max_num_rooms, dungeon_area // max_room_area)
-
-    def randomize_dungeon(self, dungeon: Dungeon) -> None:
-        """
-        Randomly put rooms in the dungeon.
-
-        Args:
-            dungeon (Dungeon): dungeon to randomize the rooms of
-        """
-        # Compute the number
-        n_rooms = self.get_number_of_rooms(dungeon.n_rows, dungeon.n_cols)
-
-        # Create rooms, randomize, and check for overlap
+        n_entrances = self.gen_num_entrances(room.cells)
         i = 0
-        while len(dungeon.rooms) < n_rooms:
-            # Create the room
-            room = Room()
 
-            # Randomize the name
-            self.room_name_randomizer.randomize_room_name(room)
+        # Shuffle cells
+        cell_list = random.sample(room.cells, k=len(room.cells))
+        for cell in cell_list:
+            assert cell.edges is not None, "cell edges not linked"
 
-            # Randomize the size
-            self.room_size_randomizer.randomize_room_size(room)
-
-            # Randomize positions
-            self.room_position_randomizer.randomize_room_position(room, dungeon)
-
-            # Check for overlap
-            overlaps = False
-            for existing_room_id, existing_room in dungeon.rooms.items():
-                if room.overlaps(existing_room):
-                    overlaps = True
+            # If an edge has a wall, set it to having a door
+            # and record it
+            # TODO: objectify this method so that cells can have many entrances
+            edges = random.sample(cell.edges, k=len(cell.edges))
+            for edge in edges:
+                if edge.is_wall:
+                    edge.has_door = True
+                    room.entrances.append(edge)
                     break
 
-            if not overlaps:
-                dungeon.add_room(room)
-
-            # Check for max attempts
-            i += 1
-            if i == self.max_room_attempts:
+            i += 1  # increment attempts
+            if i >= self.max_attempts or len(room.entrances) >= n_entrances:
                 break
         return

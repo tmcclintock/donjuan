@@ -29,6 +29,10 @@ class Randomizer:
         """Randomize properties of the `Hallway`"""
         pass  # pragma: no cover
 
+    def randomize_room_entrances(self, room: Room, *args) -> None:
+        """Randomize the entrances of the `Room`"""
+        pass  # pragma: no cover
+
     def randomize_room_size(self, room: Room, *args) -> None:
         """Randomize the size of the `Room`"""
         pass  # pragma: no cover
