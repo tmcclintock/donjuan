@@ -1,6 +1,9 @@
+import random
 from typing import Optional
 
+from donjuan.cell import Cell
 from donjuan.dungeon import Dungeon
+from donjuan.grid import Grid
 from donjuan.randomizer import Randomizer
 from donjuan.room import Room
 from donjuan.room_randomizer import (
@@ -121,4 +124,21 @@ class DungeonRandomizer(Randomizer):
             for entrance in room.entrances:
                 dungeon.room_entrances[room.name].append(entrance)
 
+        return
+
+
+class RandomFilled(Randomizer):
+    """
+    Randomly set the :attr:`filled` attribute of cells in the dungeon.
+    """
+
+    def randomize_cell(self, cell: Cell) -> None:
+        """Randomly fill the cell with probability 50%"""
+        cell.filled = bool(random.randint(0, 1))
+
+    def randomize_grid(self, grid: Grid) -> None:
+        """Randomly fill all cells of the grid individually"""
+        for i in range(grid.n_rows):
+            for j in range(grid.n_cols):
+                self.randomize_cell(grid.cells[i][j])
         return
