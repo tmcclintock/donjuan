@@ -81,6 +81,10 @@ class DungeonRandomizer(Randomizer):
         Args:
             dungeon (Dungeon): dungeon to randomize the rooms of
         """
+        # Ensure room cells match the grid's cell type (e.g. HexCell for HexGrid)
+        if hasattr(self.room_size_randomizer, "cell_type"):
+            self.room_size_randomizer.cell_type = dungeon.grid.cell_type
+
         # Compute the number
         n_rooms = self.get_number_of_rooms(dungeon.n_rows, dungeon.n_cols)
 

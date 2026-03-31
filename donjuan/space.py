@@ -57,6 +57,7 @@ class Space(ABC):
         for cell in cells:
             self.cells.add(cell)
             self.cell_coordinates.add(cell.coordinates)
+            cell.set_space(self)
         return
 
     def overlaps(self, other: "Space") -> bool:

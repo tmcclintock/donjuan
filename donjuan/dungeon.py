@@ -80,8 +80,11 @@ class Dungeon:
         Args:
             space (Space): room to emplace in the :attr:`grid`
         """
+        last_cell = None
         for cell in space.cells:
             self.grid.cells[cell.y][cell.x] = cell
+            last_cell = cell
         self.grid.link_edges_to_cells()
-        assert cell.edges is not None, "problem linking edges to cell"
+        if last_cell is not None:
+            assert last_cell.edges is not None, "problem linking edges to cell"
         return

@@ -133,7 +133,17 @@ class RoomEntrancesRandomizer(Randomizer):
             # A single cell may contribute multiple entrances.
             edges = random.sample(cell.edges, k=len(cell.edges))
             for edge in edges:
-                if edge.is_wall and len(room.entrances) < n_entrances:
+                if len(room.entrances) >= n_entrances:
+                    break
+                c1, c2 = edge.cell1, edge.cell2
+                # Skip boundary edges (one side is outside the grid)
+                if c1 is None or c2 is None:
+                    continue
+                # Only open an entrance through a solid (filled) wall cell —
+                # never between two unfilled cells (interior or adjacent-room edges).
+                if not (c1.filled or c2.filled):
+                    continue
+                if not edge.has_door:
                     edge.has_door = True
                     room.entrances.append(edge)
 

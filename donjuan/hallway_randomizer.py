@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Tuple
 from donjuan.dungeon import Dungeon
 from donjuan.hallway import Hallway
 from donjuan.randomizer import Randomizer
-from donjuan.room import Room
+from donjuan.room import Room  # noqa: F401 — used in isinstance check below
 
 
 class HallwayRandomizer(Randomizer):
@@ -61,7 +61,11 @@ class HallwayRandomizer(Randomizer):
                 continue
             name = f"{self.hallway_name_prefix}{i}"
             hallway = self._carve_hallway(dungeon, path, name)
-            self._open_hallway_connections(dungeon, hallway)
+            if not hallway.cells:
+                # Rooms are directly adjacent — open shared boundary edges
+                self._open_room_boundary(dungeon, path)
+            else:
+                self._open_hallway_connections(dungeon, hallway)
             dungeon.add_hallway(hallway)
 
     # ------------------------------------------------------------------
@@ -187,7 +191,8 @@ class HallwayRandomizer(Randomizer):
         hallway_cells = []
         for y, x in path:
             cell = dungeon.grid.cells[y][x]
-            # Only claim cells that are not already part of a room
+            # Only carve cells that are plain walls (no existing space).
+            # Room cells (space=Room) are skipped so their space is preserved.
             if cell.space is None:
                 cell.filled = False
                 hallway_cells.append(cell)
@@ -217,6 +222,33 @@ class HallwayRandomizer(Randomizer):
                 )
                 if neighbor is None:
                     continue
-                # Open the passage if the neighbour is an unfilled non-hallway cell
-                if not neighbor.filled and neighbor.space is not hallway:
+                # Open the passage only where the hallway meets a Room.
+                # Hallway-to-hallway junctions must NOT get doors or the
+                # textured renderer will draw door sprites inside corridors.
+                if not neighbor.filled and isinstance(neighbor.space, Room):
                     edge.has_door = True
+
+    def _open_room_boundary(
+        self, dungeon: Dungeon, path: List[Tuple[int, int]]
+    ) -> None:
+        """
+        When two rooms are directly adjacent (no wall cells between them),
+        open the shared edges along the path so the rooms are connected.
+        """
+        for k in range(len(path) - 1):
+            y1, x1 = path[k]
+            y2, x2 = path[k + 1]
+            c1 = dungeon.grid.cells[y1][x1]
+            c2 = dungeon.grid.cells[y2][x2]
+            if (
+                not c1.filled and isinstance(c1.space, Room)
+                and not c2.filled and isinstance(c2.space, Room)
+                and c1.space is not c2.space
+            ):
+                for edge in c1.edges:
+                    if edge is None:
+                        continue
+                    if (edge.cell1 is c1 and edge.cell2 is c2) or \
+                       (edge.cell1 is c2 and edge.cell2 is c1):
+                        edge.has_door = True
+                        break
