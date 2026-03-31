@@ -129,15 +129,13 @@ class RoomEntrancesRandomizer(Randomizer):
         for cell in cell_list:
             assert cell.edges is not None, "cell edges not linked"
 
-            # If an edge has a wall, set it to having a door
-            # and record it
-            # TODO: objectify this method so that cells can have many entrances
+            # For each wall edge on this cell, open it as an entrance.
+            # A single cell may contribute multiple entrances.
             edges = random.sample(cell.edges, k=len(cell.edges))
             for edge in edges:
-                if edge.is_wall:
+                if edge.is_wall and len(room.entrances) < n_entrances:
                     edge.has_door = True
                     room.entrances.append(edge)
-                    break
 
             i += 1  # increment attempts
             if i >= self.max_attempts or len(room.entrances) >= n_entrances:

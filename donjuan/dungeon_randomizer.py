@@ -1,6 +1,7 @@
 from typing import Optional
 
 from donjuan.dungeon import Dungeon
+from donjuan.hallway_randomizer import HallwayRandomizer
 from donjuan.randomizer import Randomizer
 from donjuan.room import Room
 from donjuan.room_randomizer import (
@@ -41,6 +42,7 @@ class DungeonRandomizer(Randomizer):
         room_size_randomizer: Optional[Randomizer] = None,
         room_name_randomizer: Optional[Randomizer] = None,
         room_position_randomizer: Optional[Randomizer] = None,
+        hallway_randomizer: Optional[Randomizer] = None,
         max_num_rooms: Optional[int] = None,
         max_room_attempts: int = 100,
     ):
@@ -54,6 +56,7 @@ class DungeonRandomizer(Randomizer):
         self.room_position_randomizer = (
             room_position_randomizer or RoomPositionRandomizer()
         )
+        self.hallway_randomizer = hallway_randomizer or HallwayRandomizer()
         self.max_num_rooms = max_num_rooms or max_room_attempts
         self.max_room_attempts = max_room_attempts
 
@@ -120,5 +123,8 @@ class DungeonRandomizer(Randomizer):
             dungeon.room_entrances[room.name] = []
             for entrance in room.entrances:
                 dungeon.room_entrances[room.name].append(entrance)
+
+        # Connect rooms with hallways
+        self.hallway_randomizer.randomize_dungeon(dungeon)
 
         return

@@ -34,12 +34,12 @@ class DoorSpace(ABC):
         material: str,
         name: str,
     ):
-        self.secret = (secret,)
-        self.locked = (locked,)
-        self.closed = (closed,)
-        self.jammed = (jammed,)
-        self.blocked = (blocked,)
-        self.broken = (broken,)
+        self.secret = secret
+        self.locked = locked
+        self.closed = closed
+        self.jammed = jammed
+        self.blocked = blocked
+        self.broken = broken
         self.material = material
         self.name = name
 

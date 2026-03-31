@@ -82,6 +82,27 @@ class RoomEntrancesRandomizerTest(RandomizerTestCase):
         rr.randomize_room_entrances(room, self.dungeon)
         assert len(room.entrances) > 0
 
+    def test_cell_can_have_multiple_entrances(self):
+        """A single cell may contribute more than one entrance edge."""
+
+        class MaxEntrancesRandomizer(RoomEntrancesRandomizer):
+            """Always request as many entrances as the cell has sides."""
+            def gen_num_entrances(self, cells):
+                # For a SquareCell, n_sides == 4; request all 4
+                from donjuan import SquareCell
+                return 4
+
+        rr = MaxEntrancesRandomizer()
+        # Single-cell room placed in the interior of the grid so all 4
+        # edges border filled (wall) cells, not the grid boundary.
+        cell = SquareCell(coordinates=(2, 2))
+        room = Room(cells={cell})
+        self.dungeon.add_room(room)
+        self.dungeon.emplace_space(room)
+        rr.randomize_room_entrances(room, self.dungeon)
+        # The single cell has 4 wall edges; all should be opened
+        assert len(room.entrances) > 1
+
 
 class RoomPositionRandomizerTest(RandomizerTestCase):
     def test_randomize_room_position(self):
