@@ -100,8 +100,9 @@ class RoomEntrancesRandomizer(Randomizer):
     (``N``) plus a uniform random integer from 0 to ``N``.
     """
 
-    def __init__(self, max_attempts: int = 100):
+    def __init__(self, max_attempts: int = 100, door_probability: float = 1.0):
         self.max_attempts = max_attempts
+        self.door_probability = door_probability
 
     def gen_num_entrances(self, cells: Set[Cell]) -> int:
         N = int(sqrt(len(cells))) // 2 + 1
@@ -144,7 +145,8 @@ class RoomEntrancesRandomizer(Randomizer):
                 if not (c1.filled or c2.filled):
                     continue
                 if not edge.has_door:
-                    edge.has_door = True
+                    if random.random() < self.door_probability:
+                        edge.has_door = True
                     room.entrances.append(edge)
 
             i += 1  # increment attempts

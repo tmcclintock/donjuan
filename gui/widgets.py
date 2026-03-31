@@ -8,7 +8,6 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 
-from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -148,8 +147,9 @@ class ControlPanel(QWidget):
         self.min_size = LabeledSpinBox("Min room size", 1, 20, 2)
         self.max_size = LabeledSpinBox("Max room size", 1, 20, 4)
         self.max_rooms = LabeledSpinBox("Max rooms", 1, 50, 10)
+        self.door_probability = LabeledSpinBox("Door probability %", 0, 100, 100)
 
-        for w in (self.min_size, self.max_size, self.max_rooms):
+        for w in (self.min_size, self.max_size, self.max_rooms, self.door_probability):
             room_layout.addWidget(w)
 
         # ── Seed ───────────────────────────────────────────────────────
@@ -232,6 +232,7 @@ class ControlPanel(QWidget):
             "min_size": min_s,
             "max_size": max_s,
             "max_rooms": self.max_rooms.value,
+            "door_probability": self.door_probability.value / 100.0,
             "seed": seed,
             # Texture toggles — only meaningful when render_style == "Textured"
             "wall_shadows":   self.cb_wall_shadows.isChecked(),
@@ -282,6 +283,17 @@ class DungeonCanvas(QWidget):
     @property
     def figure(self) -> Figure:
         return self._fig
+
+    def get_axes(self):
+        """Return the current matplotlib Axes, or None if not available."""
+        if self._fig is None or not self._fig.axes:
+            return None
+        return self._fig.axes[0]
+
+    def refresh(self) -> None:
+        """Redraw the canvas without replacing the figure."""
+        if self._canvas is not None:
+            self._canvas.draw_idle()
 
     # ── Private helpers ────────────────────────────────────────────────
 

@@ -1,6 +1,7 @@
 """
 Randomizer for generating hallways that connect rooms in a dungeon.
 """
+import random
 from collections import deque
 from typing import Dict, List, Optional, Tuple
 
@@ -27,10 +28,12 @@ class HallwayRandomizer(Randomizer):
         self,
         hallway_name_prefix: str = "H",
         max_hallway_attempts: int = 50,
+        door_probability: float = 1.0,
     ) -> None:
         super().__init__()
         self.hallway_name_prefix = hallway_name_prefix
         self.max_hallway_attempts = max_hallway_attempts
+        self.door_probability = door_probability
 
     def randomize_hallway(self, hallway: Hallway) -> None:
         """No-op: satisfies the base :class:`Randomizer` protocol."""
@@ -67,6 +70,11 @@ class HallwayRandomizer(Randomizer):
             else:
                 self._open_hallway_connections(dungeon, hallway)
             dungeon.add_hallway(hallway)
+
+        # All hallways are now carved. Clear any has_door flags that ended up
+        # interior to open space (can happen when a later hallway opened cells
+        # adjacent to a door set by an earlier one).
+        self._clear_interior_doors(dungeon)
 
     # ------------------------------------------------------------------
     # Private helpers
@@ -195,6 +203,14 @@ class HallwayRandomizer(Randomizer):
             # Room cells (space=Room) are skipped so their space is preserved.
             if cell.space is None:
                 cell.filled = False
+                # Clear any has_door flags set by RoomEntrancesRandomizer
+                # against this wall before it was carved open.
+                # _open_hallway_connections will re-establish the correct door
+                # on the proper room↔hallway boundary edge afterwards.
+                if cell.edges is not None:
+                    for edge in cell.edges:
+                        if edge is not None:
+                            edge.has_door = False
                 hallway_cells.append(cell)
 
         hallway = Hallway(ordered_cells=hallway_cells, name=name)
@@ -209,24 +225,21 @@ class HallwayRandomizer(Randomizer):
         setting ``has_door = True`` on those edges.
 
         Args:
-            dungeon (Dungeon): the dungeon (unused, kept for API symmetry)
+            dungeon (Dungeon): the dungeon
             hallway (Hallway): the hallway to connect
         """
         for cell in hallway.cells:
             for edge in cell.edges:
                 if edge is None:
                     continue
-                # Determine the neighbour on the other side of the edge
-                neighbor = (
-                    edge.cell1 if edge.cell2 is cell else edge.cell2
-                )
+                neighbor = edge.cell1 if edge.cell2 is cell else edge.cell2
                 if neighbor is None:
                     continue
-                # Open the passage only where the hallway meets a Room.
-                # Hallway-to-hallway junctions must NOT get doors or the
-                # textured renderer will draw door sprites inside corridors.
+                # Only open where hallway meets a Room, and only when the
+                # edge is a genuine wall transition (not floating in open space).
                 if not neighbor.filled and isinstance(neighbor.space, Room):
-                    edge.has_door = True
+                    if random.random() < self.door_probability:
+                        edge.has_door = True
 
     def _open_room_boundary(
         self, dungeon: Dungeon, path: List[Tuple[int, int]]
@@ -250,5 +263,83 @@ class HallwayRandomizer(Randomizer):
                         continue
                     if (edge.cell1 is c1 and edge.cell2 is c2) or \
                        (edge.cell1 is c2 and edge.cell2 is c1):
-                        edge.has_door = True
+                        if random.random() < self.door_probability:
+                            edge.has_door = True
                         break
+
+    def _clear_interior_doors(self, dungeon: Dungeon) -> None:
+        """
+        Remove ``has_door`` from any edge that is now interior to open space
+        in the fully-carved dungeon.  This catches cases where a later hallway
+        opened cells adjacent to a door that was set by an earlier one, leaving
+        it floating in the middle of open floor.
+        """
+        seen: set = set()
+        for r in range(dungeon.n_rows):
+            for c in range(dungeon.n_cols):
+                for edge in dungeon.grid.cells[r][c].edges:
+                    if edge is None or id(edge) in seen:
+                        continue
+                    seen.add(id(edge))
+                    if not edge.has_door:
+                        continue
+                    c1, c2 = edge.cell1, edge.cell2
+                    if c1 is None or c2 is None:
+                        continue
+                    if c1.filled or c2.filled:
+                        continue
+                    if self._edge_is_interior(c1, c2, dungeon):
+                        edge.has_door = False
+
+    @staticmethod
+    def _edge_is_interior(c1, c2, dungeon: Dungeon) -> bool:
+        """
+        Return True if the edge between *c1* and *c2* is flanked by open
+        space on at least one side — meaning it lies in open floor rather
+        than through a wall, so it should not host a door.
+
+        For a vertical edge (same row) the two flanking 2×2 blocks are the
+        ones immediately above and below. For a horizontal edge (same column)
+        they are the ones to the left and right.
+
+        Out-of-bounds positions are treated as filled (solid wall), so
+        map-border edges are never considered interior.
+        """
+        cells = dungeon.grid.cells
+        rows  = dungeon.n_rows
+        cols  = dungeon.n_cols
+
+        def _open(r: int, c: int) -> bool:
+            if r < 0 or r >= rows or c < 0 or c >= cols:
+                return False
+            return not cells[r][c].filled
+
+        r1, x1 = c1.y, c1.x
+        r2, x2 = c2.y, c2.x
+
+        if r1 == r2:
+            # Vertical edge; flanking blocks are above and below
+            r      = r1
+            c_left = min(x1, x2)
+            block_above = (
+                _open(r - 1, c_left) and _open(r - 1, c_left + 1)
+                and _open(r,     c_left) and _open(r,     c_left + 1)
+            )
+            block_below = (
+                _open(r,     c_left) and _open(r,     c_left + 1)
+                and _open(r + 1, c_left) and _open(r + 1, c_left + 1)
+            )
+            return block_above or block_below
+        else:
+            # Horizontal edge; flanking blocks are left and right
+            r_top = min(r1, r2)
+            c     = x1
+            block_left = (
+                _open(r_top,     c - 1) and _open(r_top,     c)
+                and _open(r_top + 1, c - 1) and _open(r_top + 1, c)
+            )
+            block_right = (
+                _open(r_top,     c) and _open(r_top,     c + 1)
+                and _open(r_top + 1, c) and _open(r_top + 1, c + 1)
+            )
+            return block_left or block_right

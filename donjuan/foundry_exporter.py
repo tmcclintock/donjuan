@@ -19,7 +19,6 @@ from typing import List, Optional, Tuple
 
 from donjuan.dungeon import Dungeon
 from donjuan.hallway import Hallway
-from donjuan.room import Room
 from donjuan.textured_renderer import PACK_NAMES, TexturedRenderer
 
 # ── Torch light defaults (grid squares) ───────────────────────────────────────
@@ -206,18 +205,14 @@ class FoundryExporter:
         Generate FoundryVTT wall objects for every relevant edge in the dungeon.
 
         Rules applied in order:
-        - Both cells filled → skip (players can never stand there).
-        - Boundary edge (one cell outside grid) adjacent to unfilled cell
-          → solid wall (exterior dungeon border).
-        - Both cells unfilled, **different spaces**, ``has_door`` → door.
-        - ``filled`` XOR (one filled, one unfilled) → solid wall.
-        - Both cells unfilled, **different spaces**, no door → solid wall
-          (e.g. two adjacent rooms not yet connected, or a hallway dead-end).
-        - Both cells unfilled, **same space**, no door → open floor; skip.
-
-        The "same-space" guard is the critical fix: ``edge.is_wall`` returns
-        True for *any* edge without a door, including interior room edges.
-        We must not add FoundryVTT walls there.
+        - Both cells filled → skip.
+        - Boundary edge adjacent to unfilled cell → solid wall.
+        - Filled ↔ unfilled → solid wall.
+        - Both unfilled, same space → open floor, skip.
+        - Both unfilled, both Hallway spaces → always open, skip.
+        - Both unfilled, different spaces, ``edge.has_door`` → Foundry door.
+        - Both unfilled, different spaces, interior edge → skip (open floor).
+        - Both unfilled, different spaces, no door/opening → solid wall.
         """
         t    = self.tile_size
         out  = []
@@ -259,12 +254,18 @@ class FoundryExporter:
                         continue
 
                     # ── Different spaces ────────────────────────────────
-                    # Only emit a FoundryVTT door where one side is a Room
-                    # and the other is a Hallway.  The entrance randomizer
-                    # also marks room↔room adjacent edges as has_door, but
-                    # those must not appear as door icons in Foundry.
-                    if edge.has_door and _is_room_hall_boundary(c1, c2):
+                    # Hallway↔hallway: two corridor segments that happen to
+                    # be different Hallway objects (e.g. crossing paths) are
+                    # always physically open — no wall between them.
+                    if isinstance(c1.space, Hallway) and isinstance(c2.space, Hallway):
+                        continue
+
+                    # For all other inter-space edges, trust the dungeon
+                    # generator as the source of truth.
+                    if edge.has_door:
                         out.append(_door_wall(coords))
+                    elif _edge_is_interior(c1, c2, dungeon):
+                        pass  # interior edge — no wall
                     else:
                         out.append(_solid_wall(coords))
 
@@ -287,9 +288,6 @@ class FoundryExporter:
                     c1, c2 = edge.cell1, edge.cell2
                     if c1 is None or c2 is None or c1.filled or c2.filled:
                         continue
-                    # Only torch at room↔hallway boundaries
-                    if not _is_room_hall_boundary(c1, c2):
-                        continue
                     # Pixel midpoint of the shared edge
                     mx = ((c1.x + c2.x) / 2.0 + 0.5) * t
                     my = ((c1.y + c2.y) / 2.0 + 0.5) * t
@@ -300,17 +298,48 @@ class FoundryExporter:
 
 # ── Module-level helpers ────────────────────────────────────────────────────────
 
-def _is_room_hall_boundary(c1, c2) -> bool:
+def _edge_is_interior(c1, c2, dungeon) -> bool:
     """
-    Return True when the edge sits exactly between a Room cell and a
-    Hallway cell — i.e. a genuine corridor entrance.
+    Return True if the edge between *c1* and *c2* sits entirely inside open
+    space — i.e. at least one flanking 2×2 block contains only unfilled cells.
+    Such an edge should not receive a wall in FoundryVTT.
+    """
+    cells = dungeon.grid.cells
+    rows  = dungeon.n_rows
+    cols  = dungeon.n_cols
 
-    Edges between two Room cells (adjacent rooms touching each other) are
-    *not* considered corridor doors; the entrance randomizer marks those
-    ``has_door=True`` but they should appear as solid walls in Foundry, not
-    door icons.
-    """
-    return isinstance(c1.space, Room) != isinstance(c2.space, Room)
+    def _open(r: int, c: int) -> bool:
+        if r < 0 or r >= rows or c < 0 or c >= cols:
+            return False
+        return not cells[r][c].filled
+
+    r1, x1 = c1.y, c1.x
+    r2, x2 = c2.y, c2.x
+
+    if r1 == r2:
+        r      = r1
+        c_left = min(x1, x2)
+        above = (
+            _open(r - 1, c_left) and _open(r - 1, c_left + 1)
+            and _open(r,     c_left) and _open(r,     c_left + 1)
+        )
+        below = (
+            _open(r,     c_left) and _open(r,     c_left + 1)
+            and _open(r + 1, c_left) and _open(r + 1, c_left + 1)
+        )
+        return above or below
+    else:
+        r_top = min(r1, r2)
+        c     = x1
+        left_block = (
+            _open(r_top,     c - 1) and _open(r_top,     c)
+            and _open(r_top + 1, c - 1) and _open(r_top + 1, c)
+        )
+        right_block = (
+            _open(r_top,     c) and _open(r_top,     c + 1)
+            and _open(r_top + 1, c) and _open(r_top + 1, c + 1)
+        )
+        return left_block or right_block
 
 
 def _random_id() -> str:
@@ -326,14 +355,19 @@ def _boundary_coords(cell, edge_idx: int, t: int) -> List[int]:
     0=top, 1=right, 2=bottom, 3=left.
     """
     x, y = cell.x, cell.y   # column, row
+    # Edge index order matches SquareGrid.link_cells_to_edges:
+    #   0 = top (horizontal edge at row y)
+    #   1 = left (vertical edge between col x-1 and x)
+    #   2 = bottom (horizontal edge at row y+1)
+    #   3 = right (vertical edge between col x and x+1)
     if edge_idx == 0:        # top
         return [x * t,       y * t,       (x + 1) * t, y * t      ]
-    elif edge_idx == 1:      # right
-        return [(x + 1) * t, y * t,       (x + 1) * t, (y + 1) * t]
+    elif edge_idx == 1:      # left
+        return [x * t,       y * t,       x * t,       (y + 1) * t]
     elif edge_idx == 2:      # bottom
         return [x * t,       (y + 1) * t, (x + 1) * t, (y + 1) * t]
-    else:                    # left
-        return [x * t,       y * t,       x * t,       (y + 1) * t]
+    else:                    # right (idx=3)
+        return [(x + 1) * t, y * t,       (x + 1) * t, (y + 1) * t]
 
 
 def _shared_edge_coords(c1, c2, t: int) -> Optional[List[int]]:

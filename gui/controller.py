@@ -4,12 +4,29 @@ Application controller: bridges the GUI widgets and the donjuan library.
 import random
 import time
 
+import matplotlib.patches as mpatches
+from PyQt5.QtCore import QEvent, QObject
 from PyQt5.QtWidgets import QFileDialog, QInputDialog, QMessageBox
 
 from donjuan import Dungeon, DungeonRandomizer, FoundryExporter, HexRenderer, Renderer, TexturedRenderer
 from donjuan.grid import HexGrid, SquareGrid
 from donjuan.randomizer import Randomizer
 from donjuan.room_randomizer import RoomSizeRandomizer
+
+
+class _HoverFilter(QObject):
+    """Event filter that fires callbacks on mouse enter/leave."""
+    def __init__(self, on_enter, on_leave, parent=None):
+        super().__init__(parent)
+        self._on_enter = on_enter
+        self._on_leave = on_leave
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Enter:
+            self._on_enter()
+        elif event.type() == QEvent.Leave:
+            self._on_leave()
+        return False
 
 
 # Maximum figure dimension (inches) used when displaying on screen.
@@ -43,6 +60,14 @@ class AppController:
         self._fig = None
         self._renderer = None
         self._last_seed = None
+        self._overlay_artists = []
+
+        # Show a Foundry preview overlay while hovering over the export button.
+        self._hover_filter = _HoverFilter(
+            self._show_foundry_overlay,
+            self._hide_foundry_overlay,
+        )
+        control_panel.export_btn.installEventFilter(self._hover_filter)
 
     # ── Slots (connected to button clicks / menu actions) ──────────────
 
@@ -162,6 +187,66 @@ class AppController:
         )
         self._status.showMessage(f'Exported FoundryVTT scene "{scene_name}" \u2192 {output_dir}')
 
+    # ── Foundry overlay ────────────────────────────────────────────────
+
+    def _show_foundry_overlay(self) -> None:
+        """Draw Foundry walls/doors/lights on top of the current render."""
+        if self._dungeon is None:
+            return
+        ax = self._canvas.get_axes()
+        if ax is None:
+            return
+
+        tile_size = (
+            self._renderer.tile_size
+            if isinstance(self._renderer, TexturedRenderer)
+            else 48
+        )
+
+        exporter = FoundryExporter(tile_size=tile_size)
+        walls  = exporter._build_walls(self._dungeon)
+        lights = exporter._build_lights(self._dungeon)
+
+        # Lock the axes limits so the overlay doesn't cause a resize.
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+
+        artists = []
+
+        for wall in walls:
+            x1, y1, x2, y2 = wall["c"]
+            color = "#6699ff" if wall["door"] == 1 else "#ffffaa"
+            lw    = 2.5       if wall["door"] == 1 else 1.5
+            line, = ax.plot(
+                [x1, x2], [y1, y2],
+                color=color, alpha=0.85, linewidth=lw,
+                solid_capstyle="round",
+            )
+            artists.append(line)
+
+        for light in lights:
+            cx, cy = light["x"], light["y"]
+            circle = mpatches.Circle(
+                (cx, cy), radius=tile_size * 0.28,
+                color="#ff9933", alpha=0.5,
+                linewidth=0,
+            )
+            ax.add_patch(circle)
+            artists.append(circle)
+
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+
+        self._overlay_artists = artists
+        self._canvas.refresh()
+
+    def _hide_foundry_overlay(self) -> None:
+        """Remove the Foundry overlay from the canvas."""
+        for artist in self._overlay_artists:
+            artist.remove()
+        self._overlay_artists = []
+        self._canvas.refresh()
+
     # ── Private helpers ────────────────────────────────────────────────
 
     def _run_generation(self, params: dict) -> None:
@@ -179,6 +264,7 @@ class AppController:
         dr = DungeonRandomizer(
             room_size_randomizer=room_rng,
             max_num_rooms=params["max_rooms"],
+            door_probability=params.get("door_probability", 1.0),
         )
 
         if params["grid_type"] == "Square":
@@ -215,7 +301,8 @@ class AppController:
 
         elapsed_ms = (time.perf_counter() - t0) * 1000
 
-        # Store and display
+        # Store and display (clear any stale overlay artists first)
+        self._overlay_artists = []
         self._dungeon = dungeon
         self._fig = fig
         self._canvas.update_figure(fig)

@@ -45,10 +45,13 @@ class DungeonRandomizer(Randomizer):
         hallway_randomizer: Optional[Randomizer] = None,
         max_num_rooms: Optional[int] = None,
         max_room_attempts: int = 100,
+        door_probability: float = 1.0,
     ):
         super().__init__()
+        self.door_probability = door_probability
         self.room_entrance_randomizer = (
-            room_entrance_randomizer or RoomEntrancesRandomizer()
+            room_entrance_randomizer
+            or RoomEntrancesRandomizer(door_probability=door_probability)
         )
         self.room_size_randomizer = room_size_randomizer or RoomSizeRandomizer()
         assert hasattr(self.room_size_randomizer, "max_size")
@@ -56,7 +59,10 @@ class DungeonRandomizer(Randomizer):
         self.room_position_randomizer = (
             room_position_randomizer or RoomPositionRandomizer()
         )
-        self.hallway_randomizer = hallway_randomizer or HallwayRandomizer()
+        self.hallway_randomizer = (
+            hallway_randomizer
+            or HallwayRandomizer(door_probability=door_probability)
+        )
         self.max_num_rooms = max_num_rooms or max_room_attempts
         self.max_room_attempts = max_room_attempts
 
