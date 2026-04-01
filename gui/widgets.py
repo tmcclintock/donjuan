@@ -133,7 +133,34 @@ class ControlPanel(QWidget):
         layout.setSpacing(10)
         layout.setContentsMargins(12, 16, 12, 8)
 
-        # Grid settings
+        # ── Scene type ────────────────────────────────────────────────
+        scene_box = QGroupBox("Scene")
+        scene_layout = QVBoxLayout(scene_box)
+        scene_layout.setSpacing(6)
+
+        scene_type_row = QWidget()
+        scene_type_layout = QHBoxLayout(scene_type_row)
+        scene_type_layout.setContentsMargins(0, 0, 0, 0)
+        scene_type_lbl = QLabel("Scene type")
+        scene_type_lbl.setMinimumWidth(110)
+        self.scene_type = QComboBox()
+        self.scene_type.addItems(["Dungeon", "Forest", "Camp"])
+        self.scene_type.setMinimumWidth(70)
+        scene_type_layout.addWidget(scene_type_lbl)
+        scene_type_layout.addWidget(self.scene_type)
+
+        self.rows = LabeledSpinBox("Rows", 5, 100, 20)
+        self.cols = LabeledSpinBox("Columns", 5, 100, 20)
+
+        for w in (scene_type_row, self.rows, self.cols):
+            scene_layout.addWidget(w)
+
+        # ── Dungeon-specific settings ─────────────────────────────────
+        self._dungeon_settings = QWidget()
+        dungeon_layout = QVBoxLayout(self._dungeon_settings)
+        dungeon_layout.setSpacing(10)
+        dungeon_layout.setContentsMargins(0, 0, 0, 0)
+
         grid_box = QGroupBox("Grid")
         grid_layout = QVBoxLayout(grid_box)
         grid_layout.setSpacing(6)
@@ -160,16 +187,12 @@ class ControlPanel(QWidget):
         style_layout.addWidget(style_lbl)
         style_layout.addWidget(self.render_style)
 
-        self.rows = LabeledSpinBox("Rows", 5, 100, 20)
-        self.cols = LabeledSpinBox("Columns", 5, 100, 20)
-
-        for w in (type_row, style_row, self.rows, self.cols):
+        for w in (type_row, style_row):
             grid_layout.addWidget(w)
 
         self.grid_type.currentTextChanged.connect(self._on_grid_type_changed)
         self.render_style.currentTextChanged.connect(self._on_render_style_changed)
 
-        # Texture options
         self._texture_box = QGroupBox("Textures")
         texture_layout = QVBoxLayout(self._texture_box)
         texture_layout.setSpacing(4)
@@ -199,7 +222,6 @@ class ControlPanel(QWidget):
         pack_layout.addWidget(self.pack_combo)
         texture_layout.addWidget(pack_row)
 
-        # Room settings
         room_box = QGroupBox("Rooms")
         room_layout = QVBoxLayout(room_box)
         room_layout.setSpacing(6)
@@ -212,18 +234,62 @@ class ControlPanel(QWidget):
         for w in (self.min_size, self.max_size, self.max_rooms, self.door_probability):
             room_layout.addWidget(w)
 
-        # Seed
+        for w in (grid_box, self._texture_box, room_box):
+            dungeon_layout.addWidget(w)
+
+        # ── Forest-specific settings ───────────────────────────────────
+        self._forest_settings = QWidget()
+        forest_layout = QVBoxLayout(self._forest_settings)
+        forest_layout.setSpacing(10)
+        forest_layout.setContentsMargins(0, 0, 0, 0)
+
+        clearings_box = QGroupBox("Clearings")
+        clearings_layout = QVBoxLayout(clearings_box)
+        clearings_layout.setSpacing(6)
+        self.n_clearings  = LabeledSpinBox("Clearings", 2, 20, 5)
+        self.clearing_min = LabeledSpinBox("Min radius", 1, 8, 2)
+        self.clearing_max = LabeledSpinBox("Max radius", 1, 12, 4)
+        for w in (self.n_clearings, self.clearing_min, self.clearing_max):
+            clearings_layout.addWidget(w)
+        forest_layout.addWidget(clearings_box)
+
+        # ── Camp-specific settings ─────────────────────────────────────
+        self._camp_settings = QWidget()
+        camp_layout = QVBoxLayout(self._camp_settings)
+        camp_layout.setSpacing(10)
+        camp_layout.setContentsMargins(0, 0, 0, 0)
+
+        tents_box = QGroupBox("Tents")
+        tents_layout = QVBoxLayout(tents_box)
+        tents_layout.setSpacing(6)
+        self.n_tents      = LabeledSpinBox("Tents", 2, 16, 6)
+        self.tent_width   = LabeledSpinBox("Tent width", 1, 6, 2)
+        self.tent_height  = LabeledSpinBox("Tent depth", 1, 6, 3)
+        self.fire_radius  = LabeledSpinBox("Fire pit radius", 1, 6, 2)
+        self.cb_perimeter = QCheckBox("Perimeter path")
+        self.cb_perimeter.setChecked(False)
+        for w in (self.n_tents, self.tent_width, self.tent_height,
+                  self.fire_radius, self.cb_perimeter):
+            tents_layout.addWidget(w)
+        camp_layout.addWidget(tents_box)
+
+        # ── Seed (always visible) ─────────────────────────────────────
         seed_box = QGroupBox("Seed")
         seed_layout = QHBoxLayout(seed_box)
         self.seed_input = QLineEdit()
         self.seed_input.setPlaceholderText("leave blank for random")
         seed_layout.addWidget(self.seed_input)
 
-        layout.addWidget(grid_box)
-        layout.addWidget(self._texture_box)
-        layout.addWidget(room_box)
+        layout.addWidget(scene_box)
+        layout.addWidget(self._dungeon_settings)
+        layout.addWidget(self._forest_settings)
+        layout.addWidget(self._camp_settings)
         layout.addWidget(seed_box)
         layout.addStretch()
+
+        self._forest_settings.hide()
+        self._camp_settings.hide()
+        self.scene_type.currentTextChanged.connect(self._on_scene_type_changed)
 
         scroll = QScrollArea()
         scroll.setWidget(content)
@@ -320,33 +386,59 @@ class ControlPanel(QWidget):
     def get_params(self) -> dict:
         seed_text = self.seed_input.text().strip()
         seed = int(seed_text) if seed_text else None
+        scene = self.scene_type.currentText()
 
-        min_s = self.min_size.value
-        max_s = self.max_size.value
-        if min_s > max_s:
-            raise ValueError(
-                f"Min room size ({min_s}) must be ≤ max room size ({max_s})."
-            )
-
-        return {
-            "grid_type": self.grid_type.currentText(),
-            "render_style": self.render_style.currentText(),
+        params = {
+            "scene_type": scene,
             "n_rows": self.rows.value,
             "n_cols": self.cols.value,
-            "min_size": min_s,
-            "max_size": max_s,
-            "max_rooms": self.max_rooms.value,
-            "door_probability": self.door_probability.value / 100.0,
             "seed": seed,
-            "wall_shadows":    self.cb_wall_shadows.isChecked(),
-            "torchlight":      self.cb_torchlight.isChecked(),
-            "moss_and_cracks": self.cb_moss_cracks.isChecked(),
-            "pillars":         self.cb_pillars.isChecked(),
-            "wall_lines":      self.cb_wall_lines.isChecked(),
-            "pack":            self.pack_combo.currentData(),
         }
 
+        if scene == "Dungeon":
+            min_s = self.min_size.value
+            max_s = self.max_size.value
+            if min_s > max_s:
+                raise ValueError(
+                    f"Min room size ({min_s}) must be ≤ max room size ({max_s})."
+                )
+            params.update({
+                "grid_type":       self.grid_type.currentText(),
+                "render_style":    self.render_style.currentText(),
+                "min_size":        min_s,
+                "max_size":        max_s,
+                "max_rooms":       self.max_rooms.value,
+                "door_probability": self.door_probability.value / 100.0,
+                "wall_shadows":    self.cb_wall_shadows.isChecked(),
+                "torchlight":      self.cb_torchlight.isChecked(),
+                "moss_and_cracks": self.cb_moss_cracks.isChecked(),
+                "pillars":         self.cb_pillars.isChecked(),
+                "wall_lines":      self.cb_wall_lines.isChecked(),
+                "pack":            self.pack_combo.currentData(),
+            })
+        elif scene == "Forest":
+            params.update({
+                "n_clearings":   self.n_clearings.value,
+                "clearing_min":  self.clearing_min.value,
+                "clearing_max":  self.clearing_max.value,
+            })
+        elif scene == "Camp":
+            params.update({
+                "n_tents":      self.n_tents.value,
+                "tent_width":   self.tent_width.value,
+                "tent_height":  self.tent_height.value,
+                "fire_radius":  self.fire_radius.value,
+                "perimeter":    self.cb_perimeter.isChecked(),
+            })
+
+        return params
+
     # ── Private helpers ────────────────────────────────────────────────
+
+    def _on_scene_type_changed(self, scene: str) -> None:
+        self._dungeon_settings.setVisible(scene == "Dungeon")
+        self._forest_settings.setVisible(scene == "Forest")
+        self._camp_settings.setVisible(scene == "Camp")
 
     def _on_grid_type_changed(self, grid_type: str) -> None:
         is_hex = grid_type == "Hex"
