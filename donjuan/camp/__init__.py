@@ -1,0 +1,1 @@
+"""Camp scene package."""

@@ -1,11 +1,13 @@
 """Tests for CampScene, CampRandomizer, and CampRenderer."""
+import math
+
 import pytest
 
 from donjuan import CampRenderer, CampScene, Scene
-from donjuan.camp import CampPath, CampRandomizer, FirePit, Tent
+from donjuan.camp.scene import CampPath, CampRandomizer, CampTree, FirePit, Tent
 
 
-# ── CampScene ───────────────────────────────────────────────────────────────
+# ── CampScene ────────────────────────────────────────────────────────────────
 
 
 def test_camp_scene_is_scene():
@@ -24,32 +26,70 @@ def test_camp_scene_dimensions():
     assert scene.n_cols == 22
 
 
+def test_camp_scene_all_cells_unfilled_on_init():
+    """Fresh CampScene: all cells start as open ground (unfilled)."""
+    scene = CampScene(n_rows=8, n_cols=8)
+    for r in range(scene.n_rows):
+        for c in range(scene.n_cols):
+            assert not scene.grid.cells[r][c].filled
+
+
 def test_camp_scene_empty_on_init():
     scene = CampScene(n_rows=10, n_cols=10)
-    assert scene.fire_pit is None
+    assert len(scene.fires) == 0
+    assert scene.fire_pit is None  # backward-compat property
     assert len(scene.tents) == 0
     assert len(scene.paths) == 0
+    assert len(scene.trees) == 0
 
 
-# ── CampRandomizer ──────────────────────────────────────────────────────────
+# ── CampRandomizer ────────────────────────────────────────────────────────────
 
 
-def test_camp_randomizer_places_fire_pit():
+def test_camp_randomizer_places_one_fire_by_default():
     scene = CampScene(n_rows=30, n_cols=30)
-    CampRandomizer(n_tents=4).randomize(scene)
-    assert scene.fire_pit is not None
-    assert isinstance(scene.fire_pit, FirePit)
+    CampRandomizer().randomize(scene)
+    assert len(scene.fires) == 1
+    assert isinstance(scene.fires[0], FirePit)
 
 
-def test_camp_fire_pit_near_centre():
-    """Fire pit cells should be near the grid centre."""
+def test_camp_randomizer_places_n_fires():
     scene = CampScene(n_rows=30, n_cols=30)
-    CampRandomizer(n_tents=4, fire_radius=2).randomize(scene)
-    assert scene.fire_pit is not None
-    for cell in scene.fire_pit.cells:
-        assert not cell.filled
-        assert abs(cell.y - 15) <= 5
-        assert abs(cell.x - 15) <= 5
+    CampRandomizer(n_fires=3, n_tents=6).randomize(scene)
+    assert len(scene.fires) == 3
+
+
+def test_camp_fire_is_single_cell():
+    """Each fire must occupy exactly one cell."""
+    scene = CampScene(n_rows=30, n_cols=30)
+    CampRandomizer(n_fires=2, n_tents=4).randomize(scene)
+    for fire in scene.fires:
+        assert len(fire.cells) == 1
+
+
+def test_camp_fire_cells_are_unfilled():
+    scene = CampScene(n_rows=30, n_cols=30)
+    CampRandomizer().randomize(scene)
+    for fire in scene.fires:
+        for cell in fire.cells:
+            assert not cell.filled
+
+
+def test_camp_single_fire_near_centre():
+    """With one fire it should land at the grid centre."""
+    scene = CampScene(n_rows=30, n_cols=30)
+    CampRandomizer(n_fires=1).randomize(scene)
+    cell = next(iter(scene.fires[0].cells))
+    assert abs(cell.y - 15) <= 2
+    assert abs(cell.x - 15) <= 2
+
+
+def test_camp_backward_compat_fire_pit_property():
+    """fire_pit property returns the first fire or None."""
+    scene = CampScene(n_rows=20, n_cols=20)
+    assert scene.fire_pit is None
+    CampRandomizer(n_fires=1).randomize(scene)
+    assert scene.fire_pit is scene.fires[0]
 
 
 def test_camp_randomizer_places_tents():
@@ -65,7 +105,7 @@ def test_camp_tents_are_tent_instances():
         assert isinstance(tent, Tent)
 
 
-def test_camp_tent_cells_are_open():
+def test_camp_tent_cells_are_unfilled():
     scene = CampScene(n_rows=30, n_cols=30)
     CampRandomizer(n_tents=4).randomize(scene)
     for tent in scene.tents.values():
@@ -73,7 +113,21 @@ def test_camp_tent_cells_are_open():
             assert not cell.filled
 
 
-def test_camp_paths_connect_to_scene():
+def test_camp_tent_sizes_small():
+    """Tents should be at most 3 cells in any dimension (1×2, 2×2, 2×3)."""
+    scene = CampScene(n_rows=30, n_cols=30)
+    CampRandomizer(n_tents=8).randomize(scene)
+    for tent in scene.tents.values():
+        ys = [c.y for c in tent.cells]
+        xs = [c.x for c in tent.cells]
+        h = max(ys) - min(ys) + 1
+        w = max(xs) - min(xs) + 1
+        assert h <= 3, f"Tent height {h} exceeds max 3"
+        assert w <= 3, f"Tent width {w} exceeds max 3"
+        assert h * w <= 6, f"Tent area {h * w} exceeds max 6"
+
+
+def test_camp_paths_are_camppath_instances():
     scene = CampScene(n_rows=30, n_cols=30)
     CampRandomizer(n_tents=4).randomize(scene)
     for path in scene.paths.values():
@@ -82,21 +136,41 @@ def test_camp_paths_connect_to_scene():
             assert not cell.filled
 
 
-def test_camp_randomizer_small_grid_does_not_crash():
-    scene = CampScene(n_rows=8, n_cols=8)
-    CampRandomizer(n_tents=3, fire_radius=1).randomize(scene)
-
-
-def test_camp_randomizer_perimeter_flag():
-    """Perimeter=True should not crash and should open extra cells."""
+def test_camp_trees_are_filled():
+    """CampTree cells must be filled=True."""
     scene = CampScene(n_rows=30, n_cols=30)
-    CampRandomizer(n_tents=4, perimeter=True).randomize(scene)
-    # Just check it doesn't raise and fire pit is placed
-    assert scene.fire_pit is not None
+    CampRandomizer(perimeter_tree_density=0.10).randomize(scene)
+    for tree in scene.trees.values():
+        assert isinstance(tree, CampTree)
+        for cell in tree.cells:
+            assert cell.filled
 
 
-def test_camp_randomizer_no_doors():
-    """Camp scenes never set has_door."""
+def test_camp_trees_in_outer_band():
+    """Trees should appear in the outer portion of the grid, not near the centre."""
+    scene = CampScene(n_rows=30, n_cols=30)
+    CampRandomizer(perimeter_tree_density=0.10).randomize(scene)
+    cy, cx = scene.n_rows / 2.0, scene.n_cols / 2.0
+    half = min(scene.n_rows, scene.n_cols) / 2.0
+    inner_limit = half * 0.6  # trees should not be closer than 60 % of half
+
+    for tree in scene.trees.values():
+        for cell in tree.cells:
+            dist = math.sqrt((cell.y - cy) ** 2 + (cell.x - cx) ** 2)
+            assert dist >= inner_limit * 0.8, (
+                f"Tree at ({cell.y},{cell.x}) is suspiciously close to centre "
+                f"(dist={dist:.1f}, limit={inner_limit:.1f})"
+            )
+
+
+def test_camp_zero_tree_density_no_trees():
+    scene = CampScene(n_rows=20, n_cols=20)
+    CampRandomizer(perimeter_tree_density=0.0).randomize(scene)
+    assert len(scene.trees) == 0
+
+
+def test_camp_no_doors():
+    """Camp scenes never set has_door on any edge."""
     scene = CampScene(n_rows=30, n_cols=30)
     CampRandomizer(n_tents=4).randomize(scene)
     for r in range(scene.n_rows):
@@ -106,13 +180,24 @@ def test_camp_randomizer_no_doors():
                     assert not edge.has_door
 
 
-# ── CampRenderer ────────────────────────────────────────────────────────────
+def test_camp_small_grid_does_not_crash():
+    scene = CampScene(n_rows=8, n_cols=8)
+    CampRandomizer(n_tents=3).randomize(scene)
+
+
+def test_camp_multi_fire_does_not_crash():
+    scene = CampScene(n_rows=30, n_cols=30)
+    CampRandomizer(n_fires=3, n_tents=9).randomize(scene)
+    assert len(scene.fires) == 3
+
+
+# ── CampRenderer ─────────────────────────────────────────────────────────────
 
 
 @pytest.mark.slow
 def test_camp_renderer_produces_image(tmp_path):
     scene = CampScene(n_rows=20, n_cols=20)
-    CampRandomizer(n_tents=5, fire_radius=2).randomize(scene)
+    CampRandomizer(n_fires=1, n_tents=5, perimeter_tree_density=0.05).randomize(scene)
     renderer = CampRenderer(tile_size=24)
     path = str(tmp_path / "camp.png")
     fig, ax = renderer.render(scene, file_path=path, save=True)
@@ -133,10 +218,18 @@ def test_camp_renderer_no_save():
 
 
 @pytest.mark.slow
-def test_camp_renderer_no_fire_pit_does_not_crash():
-    """Renderer should handle a scene with no fire pit (edge case)."""
+def test_camp_renderer_no_fires_does_not_crash():
+    """Renderer handles a scene with no fires (e.g. empty scene)."""
     scene = CampScene(n_rows=15, n_cols=15)
-    # Don't run randomizer — fire_pit stays None
     renderer = CampRenderer(tile_size=24, fire_glow=True)
+    fig, ax = renderer.render(scene, save=False)
+    assert fig is not None
+
+
+@pytest.mark.slow
+def test_camp_renderer_multi_fire():
+    scene = CampScene(n_rows=20, n_cols=20)
+    CampRandomizer(n_fires=2, n_tents=6).randomize(scene)
+    renderer = CampRenderer(tile_size=24)
     fig, ax = renderer.render(scene, save=False)
     assert fig is not None

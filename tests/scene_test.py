@@ -2,9 +2,9 @@
 import pytest
 
 from donjuan import Dungeon, Scene
-from donjuan.grid import SquareGrid
-from donjuan.room import Room
-from donjuan.cell import SquareCell
+from donjuan.core.grid import SquareGrid
+from donjuan.dungeon.room import Room
+from donjuan.core.cell import SquareCell
 
 
 def test_scene_is_base_of_dungeon():

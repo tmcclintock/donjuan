@@ -11,16 +11,35 @@
 DonJuan
 =======
 
-A translation/rebuild of the original `donjon dungeon generator
-<https://donjon.bin.sh/fantasy/dungeon/>`_.
-This package aims to deconstruct the original script into extendable parts,
-and provide all pieces for customization for different purposes and not just
-the map image. For example, when complete this package will automatically
-generate walls, doors, and light sources for use in
-`Foundry Virtual Tabletop <https://foundryvtt.com/>`_.
+DonJuan is a procedural battle-map generator for tabletop RPG scenes. It began
+as a rebuild of the original `donjon dungeon generator
+<https://donjon.bin.sh/fantasy/dungeon/>`_, and has since grown into a modular
+scene-generation toolkit with a desktop GUI, multiple renderers, and
+FoundryVTT export.
+
+Current scene types include:
+
+- **Dungeon** — rooms, hallways, doors, textured dungeon rendering
+- **Forest** — trees, undergrowth, outdoor forest rendering
+- **Camp** — tents, campfires, paths, perimeter trees
+- **Village** — enterable buildings, roads, and scattered trees
 
 You can find the `documentation here
 <https://donjuan.readthedocs.io/en/latest/>`_.
+
+Package layout
+--------------
+
+The library is organized by reusable core primitives plus scene-specific
+packages:
+
+- ``donjuan/core`` — shared grid/cell/space primitives, common Foundry export
+  base classes, reusable `Room` / `Hallway`, and shared room size/position
+  randomizers
+- ``donjuan/dungeon`` — dungeon-specific generation, rendering, and export
+- ``donjuan/forest`` — forest-specific generation, rendering, and export
+- ``donjuan/camp`` — camp-specific generation, rendering, and export
+- ``donjuan/village`` — village-specific generation, rendering, and export
 
 GUI Application
 ---------------
@@ -29,31 +48,34 @@ A desktop GUI ships alongside the library. To launch it::
 
     python run_gui.py
 
-**Generate panel** — configure grid size, render style, room parameters, door
-probability, and seed, then press *Generate*. Use *Regenerate* (``Cmd+R``) to
-replay the last seed.
+The generate panel now supports all four scene types. Depending on the scene,
+the controls expose room/building sizing, road/corridor parameters, tree or
+undergrowth density, camp layout controls, texture-pack selection, and seed
+replay.
 
-**Texture packs** — four built-in packs (Stone, Cave, Wood, Sandstone) each
-with toggleable wall shadows, torchlight, moss & cracks, pillars, and wall
-outlines.
+**Generate panel** — configure scene parameters and press *Generate*. Use
+*Regenerate* (``Cmd+R``) to replay the last seed.
 
-**Edit mode** (``Cmd+Shift+E`` or the *Edit* button) — switches the left panel
-to an edit-focused view and enables direct manipulation of the dungeon:
+**Texture packs** — dungeon rendering includes four built-in packs (Stone,
+Cave, Wood, Sandstone) with toggleable wall shadows, torchlight, moss &
+cracks, pillars, and wall outlines.
 
-* **Click / drag** — paint cells filled (wall) or open (floor).
-* **Shift + click** — toggle a door on the nearest wall edge.
-* **Alt + click** — stamp the selected *Room Theme* onto the clicked room or
-  hallway.
-* **Cmd + Z** — undo (up to 20 steps).
+**Edit mode** (``Cmd+Shift+E`` or the *Edit* button) — currently supported for
+dungeon scenes only:
+
+* **Click / drag** — paint cells filled (wall) or open (floor)
+* **Shift + click** — toggle a door on the nearest wall edge
+* **Alt + click** — stamp the selected room theme onto the clicked room or
+  hallway
+* **Cmd + Z** — undo (up to 20 steps)
 
 **Room Themes** — six floor-colour presets (Default, Treasury, Throne, Prison,
-Barracks, Crypt) that can be applied to individual rooms or hallways in edit
-mode.
+Barracks, Crypt) can be applied to dungeon rooms and hallways in edit mode.
 
-**FoundryVTT export** — exports the dungeon as a scene bundle (background image
-+ JSON) ready for import into `Foundry Virtual Tabletop
-<https://foundryvtt.com/>`_. Hovering over the *Export* button previews the
-wall, door, and light placement as an overlay on the canvas.
+**FoundryVTT export** — dungeon, forest, camp, and village scenes can all be
+exported as a scene bundle (background image + JSON) ready for import into
+`Foundry Virtual Tabletop <https://foundryvtt.com/>`_. Hovering over the
+*Export* button previews exported walls, doors, and lights on the canvas.
 
 Installation
 ------------
@@ -67,8 +89,8 @@ Install ``donjuan`` with ``pip``:
 You can find the package details `here on PyPI
 <https://pypi.org/project/donjuan/>`_.
 
-You can also install ``donjuan`` using the ``setup.py`` file. To do so, you must
-first clone or download this repository and install the requirements.
+You can also install ``donjuan`` using the ``setup.py`` file. To do so, you
+must first clone or download this repository and install the requirements.
 
 Assuming you have `git <https://git-scm.com/>`_, you can do:
 
@@ -85,8 +107,9 @@ Then you can install with:
    python setup.py install
 
 If you have `conda
-<https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html>`_ you can install the requirements using the `environment.yml` file
-before installing:
+<https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html>`_
+you can install the requirements using the ``environment.yml`` file before
+installing:
 
 .. code-block:: bash
 
@@ -94,23 +117,26 @@ before installing:
    conda activate donjuan
    python setup.py install
 
+Testing
+-------
+
 To run the test suite, you must have `pytest
-<https://docs.pytest.org/en/stable/>`_ installed. You can run the tests with:
+<https://docs.pytest.org/en/stable/>`_ installed. You can run the fast suite
+with:
 
 .. code-block:: bash
 
-   pytest
+   python3 -m pytest tests/ -m "not slow"
 
-which can be done from the root of the repository. To run all tests, including
-those with graphical outputs, run with the ``runslow`` flag:
+To run all tests, including graphical/image-writing tests:
 
 .. code-block:: bash
 
-   pytest --runslow
+   python3 -m pytest tests/ --runslow
 
 Please report any issues you encounter on our `issue page
 <https://github.com/tmcclintock/donjuan/issues>`_. Doing so will help make
-``donjuan`` even better!
+``donjuan`` even better.
 
 Contributing
 ------------

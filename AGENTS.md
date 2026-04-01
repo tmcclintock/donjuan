@@ -1,4 +1,4 @@
-# CLAUDE.md — Development Guide for DonJuan
+# AGENTS.md — Development Guide for DonJuan
 
 ## Project Overview
 

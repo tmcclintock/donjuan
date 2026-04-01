@@ -9,16 +9,19 @@ from PyQt5.QtCore import QEvent, QObject
 from PyQt5.QtWidgets import QFileDialog, QInputDialog, QMessageBox
 
 from donjuan import (
-    Dungeon, DungeonRandomizer, FoundryExporter, HexRenderer, Renderer, TexturedRenderer,
+    CampExporter, Dungeon, DungeonExporter, DungeonRandomizer, HexRenderer, Renderer, TexturedRenderer,
     ForestScene, ForestRenderer,
     CampScene, CampRenderer,
+    VillageScene, VillageRenderer, VillageExporter,
 )
-from donjuan.forest import ForestRandomizer
-from donjuan.camp import CampRandomizer
+from donjuan.forest.scene import ForestRandomizer
+from donjuan.forest.exporter import ForestExporter
+from donjuan.camp.scene import CampRandomizer
+from donjuan.village.randomizer import VillageRandomizer
 from gui.edit_controller import EditController
-from donjuan.grid import HexGrid, SquareGrid
-from donjuan.randomizer import Randomizer
-from donjuan.room_randomizer import RoomSizeRandomizer
+from donjuan.core.grid import HexGrid, SquareGrid
+from donjuan.core.randomizer import Randomizer
+from donjuan.dungeon.room_randomizer import RoomSizeRandomizer
 
 
 class _HoverFilter(QObject):
@@ -133,16 +136,31 @@ class AppController:
         self._status.showMessage(f"Saved → {path}")
 
     def on_export(self) -> None:
-        """Export the current dungeon as a FoundryVTT scene bundle."""
-        if self._dungeon is None:
+        """Export the current scene as a FoundryVTT scene bundle."""
+        if self._scene is None:
+            return
+
+        scene_type = self._scene.scene_type
+        if scene_type not in ("dungeon", "forest", "camp", "village"):
+            QMessageBox.information(
+                None,
+                "Export Not Available",
+                f"FoundryVTT export is not yet supported for {scene_type} scenes.",
+            )
             return
 
         # ── Step 1: ask for a name ─────────────────────────────────────
+        default_name = (
+            "DonJuan Dungeon" if scene_type == "dungeon"
+            else "DonJuan Forest" if scene_type == "forest"
+            else "DonJuan Camp" if scene_type == "camp"
+            else "DonJuan Village"
+        )
         scene_name, ok = QInputDialog.getText(
             None,
             "Export to FoundryVTT",
-            "Dungeon name (used for the scene and file names):",
-            text="DonJuan Dungeon",
+            "Scene name (used for the scene and file names):",
+            text=default_name,
         )
         if not ok or not scene_name.strip():
             return
@@ -163,23 +181,45 @@ class AppController:
         except ValueError:
             params = {}
 
-        exporter = FoundryExporter(
-            tile_size=100,
-            pack=params.get("pack", "stone"),
-            wall_shadows=params.get("wall_shadows", True),
-            torchlight=params.get("torchlight", True),
-            moss_and_cracks=params.get("moss_and_cracks", True),
-            pillars=params.get("pillars", True),
-            wall_lines=params.get("wall_lines", True),
-            add_lights=True,
-        )
-
+        # ── Step 3: build the right exporter and run it ────────────────
         try:
-            img_path, json_path = exporter.export(
-                self._dungeon,
-                output_dir,
-                scene_name=scene_name,
-            )
+            if scene_type == "dungeon":
+                exporter = DungeonExporter(
+                    tile_size=100,
+                    pack=params.get("pack", "stone"),
+                    wall_shadows=params.get("wall_shadows", True),
+                    torchlight=params.get("torchlight", True),
+                    moss_and_cracks=params.get("moss_and_cracks", True),
+                    pillars=params.get("pillars", True),
+                    wall_lines=params.get("wall_lines", True),
+                    add_lights=True,
+                )
+                img_path, json_path = exporter.export(
+                    self._dungeon,
+                    output_dir,
+                    scene_name=scene_name,
+                )
+            elif scene_type == "forest":
+                exporter = ForestExporter(tile_size=100)
+                img_path, json_path = exporter.export(
+                    self._scene,
+                    output_dir,
+                    scene_name=scene_name,
+                )
+            elif scene_type == "camp":
+                exporter = CampExporter(tile_size=100)
+                img_path, json_path = exporter.export(
+                    self._scene,
+                    output_dir,
+                    scene_name=scene_name,
+                )
+            else:  # village
+                exporter = VillageExporter(tile_size=100)
+                img_path, json_path = exporter.export(
+                    self._scene,
+                    output_dir,
+                    scene_name=scene_name,
+                )
         except Exception as exc:
             QMessageBox.critical(None, "Export Failed", str(exc))
             return
@@ -240,7 +280,7 @@ class AppController:
 
     def _show_foundry_overlay(self) -> None:
         """Draw Foundry walls/doors/lights on top of the current render."""
-        if self._dungeon is None:
+        if self._scene is None:
             return
         ax = self._canvas.get_axes()
         if ax is None:
@@ -248,13 +288,29 @@ class AppController:
 
         tile_size = (
             self._renderer.tile_size
-            if isinstance(self._renderer, TexturedRenderer)
+            if hasattr(self._renderer, "tile_size")
             else 48
         )
 
-        exporter = FoundryExporter(tile_size=tile_size)
-        walls  = exporter._build_walls(self._dungeon)
-        lights = exporter._build_lights(self._dungeon)
+        scene_type = self._scene.scene_type
+        if scene_type == "dungeon" and self._dungeon is not None:
+            exporter = DungeonExporter(tile_size=tile_size)
+            walls  = exporter._build_walls(self._dungeon)
+            lights = exporter._build_lights(self._dungeon)
+        elif scene_type == "forest":
+            exporter = ForestExporter(tile_size=tile_size)
+            walls  = exporter._build_walls(self._scene)
+            lights = []
+        elif scene_type == "camp":
+            exporter = CampExporter(tile_size=tile_size)
+            walls = exporter._build_walls(self._scene)
+            lights = exporter._build_lights(self._scene)
+        elif scene_type == "village":
+            exporter = VillageExporter(tile_size=tile_size)
+            walls = exporter._build_walls(self._scene)
+            lights = exporter._build_lights(self._scene)
+        else:
+            return
 
         # Lock the axes limits so the overlay doesn't cause a resize.
         xlim = ax.get_xlim()
@@ -264,8 +320,21 @@ class AppController:
 
         for wall in walls:
             x1, y1, x2, y2 = wall["c"]
-            color = "#6699ff" if wall["door"] == 1 else "#ffffaa"
-            lw    = 2.5       if wall["door"] == 1 else 1.5
+            is_door = wall["door"] == 1
+            is_movement_only = (
+                wall["move"] == 20
+                and wall["sight"] == 0
+                and wall["light"] == 0
+            )
+            if is_door:
+                color = "#6699ff"
+                lw = 2.5
+            elif is_movement_only:
+                color = "#4dd0a8"
+                lw = 2.0
+            else:
+                color = "#ffffaa"
+                lw = 1.5
             line, = ax.plot(
                 [x1, x2], [y1, y2],
                 color=color, alpha=0.85, linewidth=lw,
@@ -332,6 +401,8 @@ class AppController:
             scene, renderer, status_msg = self._build_forest(params)
         elif scene_type == "Camp":
             scene, renderer, status_msg = self._build_camp(params)
+        elif scene_type == "Village":
+            scene, renderer, status_msg = self._build_village(params)
         else:
             return
 
@@ -352,7 +423,8 @@ class AppController:
         self._canvas.update_figure(fig)
 
         # Edit mode only supported for Dungeon scenes
-        is_dungeon = scene_type == "Dungeon"
+        is_dungeon   = scene_type == "Dungeon"
+        is_exportable = scene_type in ("Dungeon", "Forest", "Camp", "Village")
         if self._edit_controller is not None:
             self._edit_controller.deactivate()
         if is_dungeon:
@@ -377,11 +449,11 @@ class AppController:
         )
 
         self._cp.save_btn.setEnabled(True)
-        self._cp.export_btn.setEnabled(is_dungeon)
+        self._cp.export_btn.setEnabled(is_exportable)
         self._regen_action.setEnabled(True)
         self._save_action.setEnabled(True)
         if self._export_action is not None:
-            self._export_action.setEnabled(is_dungeon)
+            self._export_action.setEnabled(is_exportable)
         if self._edit_action is not None:
             self._edit_action.setEnabled(is_dungeon)
         self._cp.edit_mode_btn.setEnabled(is_dungeon)
@@ -430,15 +502,15 @@ class AppController:
             n_cols=params["n_cols"],
         )
         rng = ForestRandomizer(
-            n_clearings=params["n_clearings"],
-            min_radius=params["clearing_min"],
-            max_radius=params["clearing_max"],
+            tree_density=params["tree_density"],
+            undergrowth_density=params["undergrowth_density"],
+            min_tree_spacing=params["min_tree_spacing"],
         )
         rng.randomize(scene)
         renderer = ForestRenderer(tile_size=48)
         msg = (
-            f"Generated {len(scene.clearings)} clearings, "
-            f"{len(scene.paths)} paths"
+            f"Generated forest: {len(scene.trees)} trees, "
+            f"{len(scene.undergrowth)} undergrowth patches"
         )
         return scene, renderer, msg
 
@@ -448,16 +520,37 @@ class AppController:
             n_cols=params["n_cols"],
         )
         rng = CampRandomizer(
+            n_fires=params["n_fires"],
             n_tents=params["n_tents"],
-            tent_width=params["tent_width"],
-            tent_height=params["tent_height"],
-            fire_radius=params["fire_radius"],
-            perimeter=params["perimeter"],
+            camp_radius=params["camp_radius"],
+            perimeter_tree_density=params["perimeter_tree_density"],
         )
         rng.randomize(scene)
         renderer = CampRenderer(tile_size=48)
         msg = (
-            f"Generated camp: {len(scene.tents)} tents, "
-            f"{len(scene.paths)} paths"
+            f"Generated camp: {len(scene.fires)} fire(s), "
+            f"{len(scene.tents)} tents, "
+            f"{len(scene.trees)} perimeter trees"
+        )
+        return scene, renderer, msg
+
+    def _build_village(self, params):
+        scene = VillageScene(
+            n_rows=params["n_rows"],
+            n_cols=params["n_cols"],
+        )
+        rng = VillageRandomizer(
+            n_buildings=params["n_buildings"],
+            min_building_size=params["min_building_size"],
+            max_building_size=params["max_building_size"],
+            tree_density=params["tree_density"],
+            road_branchiness=params["road_branchiness"],
+        )
+        rng.randomize(scene)
+        renderer = VillageRenderer(tile_size=48)
+        msg = (
+            f"Generated village: {len(scene.buildings)} buildings, "
+            f"{len(scene.roads)} roads, "
+            f"{len(scene.trees)} trees"
         )
         return scene, renderer, msg

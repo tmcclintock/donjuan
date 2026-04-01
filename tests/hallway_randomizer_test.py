@@ -9,8 +9,8 @@ from donjuan import (
     SquareCell,
     SquareGrid,
 )
-from donjuan.randomizer import Randomizer
-from donjuan.room_randomizer import RoomSizeRandomizer
+from donjuan.core.randomizer import Randomizer
+from donjuan.dungeon.room_randomizer import RoomSizeRandomizer
 
 
 class HallwayRandomizerTestCase(TestCase):

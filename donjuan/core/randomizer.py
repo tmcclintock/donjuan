@@ -1,0 +1,71 @@
+import random
+from typing import Optional
+
+from donjuan.core.cell import Cell
+from donjuan.dungeon.dungeon import Dungeon
+from donjuan.core.grid import Grid
+from donjuan.core.hallway import Hallway
+from donjuan.core.room import Room
+
+
+class Randomizer:
+    """
+    Class for randomizing features of a dungeon.
+    """
+
+    def randomize_cell(self, cell: Cell) -> None:
+        """Randomize properties of the `Cell`"""
+        pass  # pragma: no cover
+
+    def randomize_dungeon(self, dungeon: Dungeon) -> None:
+        """Randomize properties of the `Dungeon`"""
+        pass  # pragma: no cover
+
+    def randomize_grid(self, grid: Grid) -> None:
+        """Randomize properties of the `Grid`"""
+        pass  # pragma: no cover
+
+    def randomize_hallway(self, hallway: Hallway) -> None:
+        """Randomize properties of the `Hallway`"""
+        pass  # pragma: no cover
+
+    def randomize_room_entrances(self, room: Room, *args) -> None:
+        """Randomize the entrances of the `Room`"""
+        pass  # pragma: no cover
+
+    def randomize_room_size(self, room: Room, *args) -> None:
+        """Randomize the size of the `Room`"""
+        pass  # pragma: no cover
+
+    def randomize_room_name(self, room: Room, *args) -> None:
+        """Randomize the name of a `Room`"""
+        pass  # pragma: no cover
+
+    def randomize_room_position(self, room: Room, *args) -> None:
+        """Randomize the position of a `Room`"""
+        pass  # pragma: no cover
+
+    @classmethod
+    def seed(cls, seed: Optional[int] = None) -> None:
+        """
+        Args:
+            seed (Optional[int]): seed passed to :meth:`random.seed`
+        """
+        random.seed(seed)
+
+
+class RandomFilled(Randomizer):
+    """
+    Randomly set the :attr:`filled` attribute of cells.
+    """
+
+    def randomize_cell(self, cell: Cell) -> None:
+        """Randomly fill the cell with probability 50%"""
+        cell.filled = bool(random.randint(0, 1))
+
+    def randomize_grid(self, grid: Grid) -> None:
+        """Randomly fill all cells of the grid individually"""
+        for i in range(grid.n_rows):
+            for j in range(grid.n_cols):
+                self.randomize_cell(grid.cells[i][j])
+        return
