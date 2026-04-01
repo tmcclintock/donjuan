@@ -1,6 +1,7 @@
 from typing import Optional
 
 from donjuan.dungeon import Dungeon
+from donjuan.hallway_randomizer import HallwayRandomizer
 from donjuan.randomizer import Randomizer
 from donjuan.room import Room
 from donjuan.room_randomizer import (
@@ -41,18 +42,26 @@ class DungeonRandomizer(Randomizer):
         room_size_randomizer: Optional[Randomizer] = None,
         room_name_randomizer: Optional[Randomizer] = None,
         room_position_randomizer: Optional[Randomizer] = None,
+        hallway_randomizer: Optional[Randomizer] = None,
         max_num_rooms: Optional[int] = None,
         max_room_attempts: int = 100,
+        door_probability: float = 1.0,
     ):
         super().__init__()
+        self.door_probability = door_probability
         self.room_entrance_randomizer = (
-            room_entrance_randomizer or RoomEntrancesRandomizer()
+            room_entrance_randomizer
+            or RoomEntrancesRandomizer(door_probability=door_probability)
         )
         self.room_size_randomizer = room_size_randomizer or RoomSizeRandomizer()
         assert hasattr(self.room_size_randomizer, "max_size")
         self.room_name_randomizer = room_name_randomizer or AlphaNumRoomName()
         self.room_position_randomizer = (
             room_position_randomizer or RoomPositionRandomizer()
+        )
+        self.hallway_randomizer = (
+            hallway_randomizer
+            or HallwayRandomizer(door_probability=door_probability)
         )
         self.max_num_rooms = max_num_rooms or max_room_attempts
         self.max_room_attempts = max_room_attempts
@@ -78,6 +87,10 @@ class DungeonRandomizer(Randomizer):
         Args:
             dungeon (Dungeon): dungeon to randomize the rooms of
         """
+        # Ensure room cells match the grid's cell type (e.g. HexCell for HexGrid)
+        if hasattr(self.room_size_randomizer, "cell_type"):
+            self.room_size_randomizer.cell_type = dungeon.grid.cell_type
+
         # Compute the number
         n_rooms = self.get_number_of_rooms(dungeon.n_rows, dungeon.n_cols)
 
@@ -120,5 +133,8 @@ class DungeonRandomizer(Randomizer):
             dungeon.room_entrances[room.name] = []
             for entrance in room.entrances:
                 dungeon.room_entrances[room.name].append(entrance)
+
+        # Connect rooms with hallways
+        self.hallway_randomizer.randomize_dungeon(dungeon)
 
         return

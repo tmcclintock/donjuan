@@ -22,6 +22,39 @@ generate walls, doors, and light sources for use in
 You can find the `documentation here
 <https://donjuan.readthedocs.io/en/latest/>`_.
 
+GUI Application
+---------------
+
+A desktop GUI ships alongside the library. To launch it::
+
+    python run_gui.py
+
+**Generate panel** — configure grid size, render style, room parameters, door
+probability, and seed, then press *Generate*. Use *Regenerate* (``Cmd+R``) to
+replay the last seed.
+
+**Texture packs** — four built-in packs (Stone, Cave, Wood, Sandstone) each
+with toggleable wall shadows, torchlight, moss & cracks, pillars, and wall
+outlines.
+
+**Edit mode** (``Cmd+Shift+E`` or the *Edit* button) — switches the left panel
+to an edit-focused view and enables direct manipulation of the dungeon:
+
+* **Click / drag** — paint cells filled (wall) or open (floor).
+* **Shift + click** — toggle a door on the nearest wall edge.
+* **Alt + click** — stamp the selected *Room Theme* onto the clicked room or
+  hallway.
+* **Cmd + Z** — undo (up to 20 steps).
+
+**Room Themes** — six floor-colour presets (Default, Treasury, Throne, Prison,
+Barracks, Crypt) that can be applied to individual rooms or hallways in edit
+mode.
+
+**FoundryVTT export** — exports the dungeon as a scene bundle (background image
++ JSON) ready for import into `Foundry Virtual Tabletop
+<https://foundryvtt.com/>`_. Hovering over the *Export* button previews the
+wall, door, and light placement as an overlay on the canvas.
+
 Installation
 ------------
 

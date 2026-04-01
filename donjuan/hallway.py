@@ -17,10 +17,14 @@ class Hallway(Space):
     """
 
     def __init__(
-        self, ordered_cells: Optional[List[Cell]] = None, name: Union[int, str] = "",
+        self,
+        ordered_cells: Optional[List[Cell]] = None,
+        name: Union[int, str] = "",
+        theme: str = "default",
     ):
         self._ordered_cells = ordered_cells or list()
         super().__init__(cells=set(self.ordered_cells), name=name)
+        self.theme = theme
 
     @property
     def ordered_cells(self) -> List[Cell]:
