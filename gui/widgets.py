@@ -113,7 +113,6 @@ class ControlPanel(QWidget):
         self.export_btn = QPushButton("🗺  Export FoundryVTT…")
         self.export_btn.setEnabled(False)
         self.export_btn.setMinimumHeight(32)
-        self.export_btn.setToolTip("FoundryVTT export is not yet implemented")
 
         bottom_layout.addWidget(mode_row)
         bottom_layout.addWidget(self.save_btn)
@@ -144,7 +143,7 @@ class ControlPanel(QWidget):
         scene_type_lbl = QLabel("Scene type")
         scene_type_lbl.setMinimumWidth(110)
         self.scene_type = QComboBox()
-        self.scene_type.addItems(["Dungeon", "Forest", "Camp"])
+        self.scene_type.addItems(["Dungeon", "Forest", "Camp", "Village"])
         self.scene_type.setMinimumWidth(70)
         scene_type_layout.addWidget(scene_type_lbl)
         scene_type_layout.addWidget(self.scene_type)
@@ -243,15 +242,15 @@ class ControlPanel(QWidget):
         forest_layout.setSpacing(10)
         forest_layout.setContentsMargins(0, 0, 0, 0)
 
-        clearings_box = QGroupBox("Clearings")
-        clearings_layout = QVBoxLayout(clearings_box)
-        clearings_layout.setSpacing(6)
-        self.n_clearings  = LabeledSpinBox("Clearings", 2, 20, 5)
-        self.clearing_min = LabeledSpinBox("Min radius", 1, 8, 2)
-        self.clearing_max = LabeledSpinBox("Max radius", 1, 12, 4)
-        for w in (self.n_clearings, self.clearing_min, self.clearing_max):
-            clearings_layout.addWidget(w)
-        forest_layout.addWidget(clearings_box)
+        trees_box = QGroupBox("Trees & Undergrowth")
+        trees_layout = QVBoxLayout(trees_box)
+        trees_layout.setSpacing(6)
+        self.tree_density        = LabeledSpinBox("Tree density %",        1, 40,  8)
+        self.undergrowth_density = LabeledSpinBox("Undergrowth density %", 0, 50, 12)
+        self.min_tree_spacing    = LabeledSpinBox("Min tree spacing",       1,  6,  2)
+        for w in (self.tree_density, self.undergrowth_density, self.min_tree_spacing):
+            trees_layout.addWidget(w)
+        forest_layout.addWidget(trees_box)
 
         # ── Camp-specific settings ─────────────────────────────────────
         self._camp_settings = QWidget()
@@ -259,19 +258,41 @@ class ControlPanel(QWidget):
         camp_layout.setSpacing(10)
         camp_layout.setContentsMargins(0, 0, 0, 0)
 
-        tents_box = QGroupBox("Tents")
-        tents_layout = QVBoxLayout(tents_box)
-        tents_layout.setSpacing(6)
-        self.n_tents      = LabeledSpinBox("Tents", 2, 16, 6)
-        self.tent_width   = LabeledSpinBox("Tent width", 1, 6, 2)
-        self.tent_height  = LabeledSpinBox("Tent depth", 1, 6, 3)
-        self.fire_radius  = LabeledSpinBox("Fire pit radius", 1, 6, 2)
-        self.cb_perimeter = QCheckBox("Perimeter path")
-        self.cb_perimeter.setChecked(False)
-        for w in (self.n_tents, self.tent_width, self.tent_height,
-                  self.fire_radius, self.cb_perimeter):
-            tents_layout.addWidget(w)
-        camp_layout.addWidget(tents_box)
+        camp_box = QGroupBox("Campfires & Tents")
+        camp_box_layout = QVBoxLayout(camp_box)
+        camp_box_layout.setSpacing(6)
+        self.n_fires          = LabeledSpinBox("Campfires",          1,  4,  1)
+        self.n_tents          = LabeledSpinBox("Tents",              2, 16,  6)
+        self.camp_radius_pct  = LabeledSpinBox("Tent ring radius %", 20, 70, 40)
+        self.camp_tree_density_pct = LabeledSpinBox("Perimeter trees %", 0, 25, 5)
+        for w in (self.n_fires, self.n_tents,
+                  self.camp_radius_pct, self.camp_tree_density_pct):
+            camp_box_layout.addWidget(w)
+        camp_layout.addWidget(camp_box)
+
+        # ── Village-specific settings ──────────────────────────────────
+        self._village_settings = QWidget()
+        village_layout = QVBoxLayout(self._village_settings)
+        village_layout.setSpacing(10)
+        village_layout.setContentsMargins(0, 0, 0, 0)
+
+        village_box = QGroupBox("Buildings & Roads")
+        village_box_layout = QVBoxLayout(village_box)
+        village_box_layout.setSpacing(6)
+        self.village_buildings = LabeledSpinBox("Buildings", 2, 30, 10)
+        self.village_min_size = LabeledSpinBox("Min building size", 1, 8, 2)
+        self.village_max_size = LabeledSpinBox("Max building size", 1, 10, 4)
+        self.village_tree_density = LabeledSpinBox("Tree density %", 0, 25, 6)
+        self.village_road_branchiness = LabeledSpinBox("Road branchiness %", 0, 100, 20)
+        for w in (
+            self.village_buildings,
+            self.village_min_size,
+            self.village_max_size,
+            self.village_tree_density,
+            self.village_road_branchiness,
+        ):
+            village_box_layout.addWidget(w)
+        village_layout.addWidget(village_box)
 
         # ── Seed (always visible) ─────────────────────────────────────
         seed_box = QGroupBox("Seed")
@@ -284,11 +305,13 @@ class ControlPanel(QWidget):
         layout.addWidget(self._dungeon_settings)
         layout.addWidget(self._forest_settings)
         layout.addWidget(self._camp_settings)
+        layout.addWidget(self._village_settings)
         layout.addWidget(seed_box)
         layout.addStretch()
 
         self._forest_settings.hide()
         self._camp_settings.hide()
+        self._village_settings.hide()
         self.scene_type.currentTextChanged.connect(self._on_scene_type_changed)
 
         scroll = QScrollArea()
@@ -418,17 +441,30 @@ class ControlPanel(QWidget):
             })
         elif scene == "Forest":
             params.update({
-                "n_clearings":   self.n_clearings.value,
-                "clearing_min":  self.clearing_min.value,
-                "clearing_max":  self.clearing_max.value,
+                "tree_density":        self.tree_density.value / 100.0,
+                "undergrowth_density": self.undergrowth_density.value / 100.0,
+                "min_tree_spacing":    self.min_tree_spacing.value,
             })
         elif scene == "Camp":
             params.update({
-                "n_tents":      self.n_tents.value,
-                "tent_width":   self.tent_width.value,
-                "tent_height":  self.tent_height.value,
-                "fire_radius":  self.fire_radius.value,
-                "perimeter":    self.cb_perimeter.isChecked(),
+                "n_fires":                self.n_fires.value,
+                "n_tents":                self.n_tents.value,
+                "camp_radius":            self.camp_radius_pct.value / 100.0,
+                "perimeter_tree_density": self.camp_tree_density_pct.value / 100.0,
+            })
+        elif scene == "Village":
+            min_s = self.village_min_size.value
+            max_s = self.village_max_size.value
+            if min_s > max_s:
+                raise ValueError(
+                    f"Min building size ({min_s}) must be ≤ max building size ({max_s})."
+                )
+            params.update({
+                "n_buildings": self.village_buildings.value,
+                "min_building_size": min_s,
+                "max_building_size": max_s,
+                "tree_density": self.village_tree_density.value / 100.0,
+                "road_branchiness": self.village_road_branchiness.value / 100.0,
             })
 
         return params
@@ -439,6 +475,7 @@ class ControlPanel(QWidget):
         self._dungeon_settings.setVisible(scene == "Dungeon")
         self._forest_settings.setVisible(scene == "Forest")
         self._camp_settings.setVisible(scene == "Camp")
+        self._village_settings.setVisible(scene == "Village")
 
     def _on_grid_type_changed(self, grid_type: str) -> None:
         is_hex = grid_type == "Hex"

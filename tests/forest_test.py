@@ -2,7 +2,7 @@
 import pytest
 
 from donjuan import ForestRenderer, ForestScene, Scene
-from donjuan.forest import Clearing, ForestPath, ForestRandomizer
+from donjuan.forest.scene import ForestRandomizer, Tree, Undergrowth
 
 
 # ── ForestScene ─────────────────────────────────────────────────────────────
@@ -24,54 +24,96 @@ def test_forest_scene_dimensions():
     assert scene.n_cols == 25
 
 
+def test_forest_scene_all_cells_unfilled_on_init():
+    """Fresh ForestScene: all cells are open ground (unfilled)."""
+    scene = ForestScene(n_rows=8, n_cols=8)
+    for r in range(scene.n_rows):
+        for c in range(scene.n_cols):
+            assert not scene.grid.cells[r][c].filled
+
+
 def test_forest_scene_empty_on_init():
     scene = ForestScene(n_rows=10, n_cols=10)
-    assert len(scene.clearings) == 0
-    assert len(scene.paths) == 0
+    assert len(scene.trees) == 0
+    assert len(scene.undergrowth) == 0
 
 
 # ── ForestRandomizer ────────────────────────────────────────────────────────
 
 
-def test_forest_randomizer_places_clearings():
-    scene = ForestScene(n_rows=30, n_cols=30)
-    rng = ForestRandomizer(n_clearings=4, min_radius=2, max_radius=3)
+def test_forest_randomizer_places_trees():
+    scene = ForestScene(n_rows=20, n_cols=20)
+    rng = ForestRandomizer(tree_density=0.1)
     rng.randomize(scene)
-    assert len(scene.clearings) >= 1
+    assert len(scene.trees) >= 1
 
 
-def test_forest_randomizer_clearings_have_open_cells():
-    scene = ForestScene(n_rows=30, n_cols=30)
-    rng = ForestRandomizer(n_clearings=3, min_radius=2, max_radius=3)
-    rng.randomize(scene)
-    for clearing in scene.clearings.values():
-        assert isinstance(clearing, Clearing)
-        for cell in clearing.cells:
+def test_forest_tree_cells_are_filled():
+    """Every cell belonging to a Tree space must be filled=True."""
+    scene = ForestScene(n_rows=20, n_cols=20)
+    ForestRandomizer(tree_density=0.1).randomize(scene)
+    for tree in scene.trees.values():
+        assert isinstance(tree, Tree)
+        for cell in tree.cells:
+            assert cell.filled
+
+
+def test_forest_undergrowth_cells_are_unfilled():
+    """Undergrowth cells are traversable (filled=False)."""
+    scene = ForestScene(n_rows=20, n_cols=20)
+    ForestRandomizer(tree_density=0.0, undergrowth_density=0.15).randomize(scene)
+    for patch in scene.undergrowth.values():
+        assert isinstance(patch, Undergrowth)
+        for cell in patch.cells:
             assert not cell.filled
 
 
-def test_forest_randomizer_paths_are_forest_path():
+def test_forest_trees_respect_minimum_spacing():
+    """No two tree cells should be closer than min_tree_spacing (Manhattan)."""
+    min_spacing = 3
     scene = ForestScene(n_rows=30, n_cols=30)
-    rng = ForestRandomizer(n_clearings=3, min_radius=2, max_radius=2)
-    rng.randomize(scene)
-    for path in scene.paths.values():
-        assert isinstance(path, ForestPath)
+    ForestRandomizer(tree_density=0.05, min_tree_spacing=min_spacing).randomize(scene)
+
+    tree_coords = []
+    for tree in scene.trees.values():
+        for cell in tree.cells:
+            tree_coords.append((cell.y, cell.x))
+
+    for i, (r1, c1) in enumerate(tree_coords):
+        for r2, c2 in tree_coords[i + 1 :]:
+            dist = abs(r1 - r2) + abs(c1 - c2)
+            assert dist >= min_spacing, (
+                f"Trees at ({r1},{c1}) and ({r2},{c2}) are only {dist} apart "
+                f"(min_spacing={min_spacing})"
+            )
 
 
-def test_forest_randomizer_paths_open_cells():
-    scene = ForestScene(n_rows=30, n_cols=30)
-    rng = ForestRandomizer(n_clearings=3, min_radius=2, max_radius=2)
-    rng.randomize(scene)
-    for path in scene.paths.values():
-        for cell in path.cells:
-            assert not cell.filled
+def test_forest_undergrowth_not_placed_on_tree_cells():
+    """Undergrowth must never overlap with tree cells."""
+    scene = ForestScene(n_rows=20, n_cols=20)
+    ForestRandomizer(tree_density=0.08, undergrowth_density=0.15).randomize(scene)
+
+    tree_coords = set()
+    for tree in scene.trees.values():
+        for cell in tree.cells:
+            tree_coords.add((cell.y, cell.x))
+
+    for patch in scene.undergrowth.values():
+        for cell in patch.cells:
+            assert (cell.y, cell.x) not in tree_coords
 
 
-def test_forest_randomizer_no_doors():
+def test_forest_zero_density_no_trees():
+    scene = ForestScene(n_rows=20, n_cols=20)
+    ForestRandomizer(tree_density=0.0, undergrowth_density=0.0).randomize(scene)
+    assert len(scene.trees) == 0
+    assert len(scene.undergrowth) == 0
+
+
+def test_forest_no_doors():
     """Forest scenes should not set has_door on any edge."""
-    scene = ForestScene(n_rows=30, n_cols=30)
-    rng = ForestRandomizer(n_clearings=3, min_radius=2, max_radius=2)
-    rng.randomize(scene)
+    scene = ForestScene(n_rows=20, n_cols=20)
+    ForestRandomizer(tree_density=0.08, undergrowth_density=0.12).randomize(scene)
     for r in range(scene.n_rows):
         for c in range(scene.n_cols):
             for edge in scene.grid.cells[r][c].edges:
@@ -79,19 +121,10 @@ def test_forest_randomizer_no_doors():
                     assert not edge.has_door
 
 
-def test_forest_randomizer_small_grid_does_not_crash():
-    """Should not raise even if grid is too small for clearings."""
-    scene = ForestScene(n_rows=5, n_cols=5)
-    rng = ForestRandomizer(n_clearings=3, min_radius=3, max_radius=4)
-    rng.randomize(scene)  # may place 0 clearings; should not raise
-
-
-def test_forest_randomizer_single_clearing_no_paths():
-    """With only one clearing there are no MST pairs, so no paths."""
-    scene = ForestScene(n_rows=30, n_cols=30)
-    rng = ForestRandomizer(n_clearings=1, min_radius=2, max_radius=2, max_attempts=5)
-    rng.randomize(scene)
-    assert len(scene.paths) == 0
+def test_forest_small_grid_does_not_crash():
+    """Tiny grids should not raise even if few trees fit."""
+    scene = ForestScene(n_rows=4, n_cols=4)
+    ForestRandomizer(tree_density=0.1, min_tree_spacing=3).randomize(scene)
 
 
 # ── ForestRenderer ──────────────────────────────────────────────────────────
@@ -100,7 +133,7 @@ def test_forest_randomizer_single_clearing_no_paths():
 @pytest.mark.slow
 def test_forest_renderer_produces_image(tmp_path):
     scene = ForestScene(n_rows=20, n_cols=20)
-    ForestRandomizer(n_clearings=4, min_radius=2, max_radius=3).randomize(scene)
+    ForestRandomizer(tree_density=0.08, undergrowth_density=0.12).randomize(scene)
     renderer = ForestRenderer(tile_size=24)
     path = str(tmp_path / "forest.png")
     fig, ax = renderer.render(scene, file_path=path, save=True)
@@ -111,9 +144,9 @@ def test_forest_renderer_produces_image(tmp_path):
 
 
 @pytest.mark.slow
-def test_forest_renderer_no_save(tmp_path):
+def test_forest_renderer_no_save():
     scene = ForestScene(n_rows=15, n_cols=15)
-    ForestRandomizer(n_clearings=3).randomize(scene)
+    ForestRandomizer(tree_density=0.08, undergrowth_density=0.12).randomize(scene)
     renderer = ForestRenderer(tile_size=24)
     fig, ax = renderer.render(scene, save=False)
     assert fig is not None

@@ -7,7 +7,7 @@ from unittest import TestCase
 import pytest
 
 from donjuan import Dungeon, DungeonRandomizer, HexRenderer, Renderer
-from donjuan.grid import HexGrid, SquareGrid
+from donjuan.core.grid import HexGrid, SquareGrid
 
 
 class RendererTest(TestCase):
@@ -117,8 +117,8 @@ class HexRendererTest(TestCase):
     @pytest.mark.slow
     def test_render_hex_dungeon_with_rooms(self):
         from donjuan import DungeonRandomizer
-        from donjuan.room_randomizer import RoomSizeRandomizer
-        from donjuan.cell import HexCell
+        from donjuan.dungeon.room_randomizer import RoomSizeRandomizer
+        from donjuan.core.cell import HexCell
         dungeon = Dungeon(grid=HexGrid(10, 10))
         # manually place a couple of unfilled hex cells
         dungeon.grid.cells[2][2].filled = False

@@ -237,8 +237,8 @@ class EditController:
 
     def _apply_theme(self, row: int, col: int) -> None:
         """Apply the selected theme to the room or hallway containing the clicked cell."""
-        from donjuan.hallway import Hallway
-        from donjuan.room import Room
+        from donjuan.dungeon.hallway import Hallway
+        from donjuan.dungeon.room import Room
         cell = self._dungeon.grid.cells[row][col]
         if not isinstance(cell.space, (Room, Hallway)):
             self._status.showMessage(
