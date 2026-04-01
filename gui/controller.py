@@ -19,6 +19,7 @@ from donjuan.forest.exporter import ForestExporter
 from donjuan.camp.scene import CampRandomizer
 from donjuan.village.randomizer import VillageRandomizer
 from gui.edit_controller import EditController
+from gui.village_edit_controller import VillageEditController
 from donjuan.core.grid import HexGrid, SquareGrid
 from donjuan.core.randomizer import Randomizer
 from donjuan.dungeon.room_randomizer import RoomSizeRandomizer
@@ -367,12 +368,12 @@ class AppController:
 
     # ── Private helpers ────────────────────────────────────────────────
 
-    def _rerender_dungeon(self) -> None:
-        """Re-render the current dungeon in-place (no regeneration)."""
-        if self._dungeon is None or self._renderer is None:
+    def _rerender_scene(self) -> None:
+        """Re-render the current scene in-place (no regeneration)."""
+        if self._scene is None or self._renderer is None:
             return
 
-        fig, _ax = self._renderer.render(self._dungeon, save=False)  # type: ignore[arg-type]
+        fig, _ax = self._renderer.render(self._scene, save=False)  # type: ignore[arg-type]
         w, h = fig.get_size_inches()
         scale = min(_MAX_DISPLAY_INCHES / max(w, h), 1.0)
         fig.set_size_inches(w * scale, h * scale, forward=True)
@@ -422,26 +423,41 @@ class AppController:
         self._renderer = renderer
         self._canvas.update_figure(fig)
 
-        # Edit mode only supported for Dungeon scenes
-        is_dungeon   = scene_type == "Dungeon"
+        is_dungeon = scene_type == "Dungeon"
+        is_village = scene_type == "Village"
+        is_editable = scene_type in ("Dungeon", "Village")
         is_exportable = scene_type in ("Dungeon", "Forest", "Camp", "Village")
         if self._edit_controller is not None:
             self._edit_controller.deactivate()
+        self._cp.set_edit_scene_type(scene_type)
         if is_dungeon:
             self._edit_controller = EditController(
                 canvas=self._canvas,
                 dungeon=scene,
                 renderer=renderer,
                 status_bar=self._status,
-                rerender_fn=self._rerender_dungeon,
+                rerender_fn=self._rerender_scene,
                 get_theme_fn=lambda: self._cp.current_theme,
             )
+        elif is_village:
+            self._edit_controller = VillageEditController(
+                canvas=self._canvas,
+                scene=scene,
+                renderer=renderer,
+                status_bar=self._status,
+                rerender_fn=self._rerender_scene,
+                get_theme_fn=lambda: self._cp.current_theme,
+                get_tool_fn=lambda: self._cp.current_village_tool,
+            )
+        else:
+            self._edit_controller = None
+
+        if self._edit_controller is not None:
             if self._edit_mode:
                 self._edit_controller.activate()
         else:
-            self._edit_controller = None
             if self._edit_mode:
-                # Turn off edit mode if we're switching away from dungeon
+                # Turn off edit mode if we're switching away from editable scenes
                 self._on_edit_mode_toggled(False)
 
         self._status.showMessage(
@@ -455,8 +471,8 @@ class AppController:
         if self._export_action is not None:
             self._export_action.setEnabled(is_exportable)
         if self._edit_action is not None:
-            self._edit_action.setEnabled(is_dungeon)
-        self._cp.edit_mode_btn.setEnabled(is_dungeon)
+            self._edit_action.setEnabled(is_editable)
+        self._cp.edit_mode_btn.setEnabled(is_editable)
 
     def _build_dungeon(self, params):
         room_rng = RoomSizeRandomizer(

@@ -28,7 +28,7 @@ class VillageExporter(FoundryExporter):
         self,
         tile_size: int = 100,
         tree_wall_segments: int = 10,
-        tree_wall_radius_fraction: float = 0.42,
+        tree_wall_radius_fraction: float = 0.34,
         add_boundary_walls: bool = True,
         darkness_level: float = 0.15,
         grid_distance: int = 5,

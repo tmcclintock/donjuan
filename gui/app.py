@@ -121,6 +121,16 @@ QPushButton#editModeButton:checked:hover {
     background-color: #cbe8c6;
     border-color: #cbe8c6;
 }
+QPushButton#villageToolButton:checked {
+    background-color: #89dceb;
+    color: #1e1e2e;
+    border-color: #89dceb;
+    font-weight: bold;
+}
+QPushButton#villageToolButton:checked:hover {
+    background-color: #a9e7f1;
+    border-color: #a9e7f1;
+}
 
 QStatusBar {
     background-color: #181825;

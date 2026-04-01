@@ -2,6 +2,7 @@
 import os
 from collections import deque
 
+import numpy as np
 import pytest
 
 from donjuan import Hallway, Room, Scene, VillageRandomizer, VillageRenderer, VillageScene
@@ -120,6 +121,63 @@ def test_shared_primitives_importable_from_core():
     assert CoreRoom is Room
     assert CoreHallway is Hallway
     assert DoorSpace.__name__ == "DoorSpace"
+
+
+def test_village_scene_helper_names_and_pruning():
+    scene = VillageScene(n_rows=6, n_cols=6)
+    assert scene.next_building_name() == "B0"
+    assert scene.next_road_name() == "R0"
+    assert scene.next_tree_name() == "T0"
+
+    room = Room(name="B0", cells={scene.grid.cells[1][1]})
+    scene.grid.cells[1][1].filled = False
+    scene.add_building(room)
+    scene.emplace_space(room)
+    scene.grid.cells[1][1].set_space(None)
+    scene.prune_empty_space(room)
+
+    assert "B0" not in scene.buildings
+
+
+def test_village_scene_rebuilds_building_entrances():
+    scene = VillageScene(n_rows=5, n_cols=5)
+    room = Room(name="B0", cells={scene.grid.cells[2][2]})
+    scene.grid.cells[2][2].filled = False
+    scene.add_building(room)
+    scene.emplace_space(room)
+
+    edge = next(
+        edge for edge in scene.grid.cells[2][2].edges
+        if edge is not None
+        and {
+            None if edge.cell1 is None else edge.cell1.coordinates,
+            None if edge.cell2 is None else edge.cell2.coordinates,
+        } == {(2, 2), (2, 3)}
+    )
+    edge.has_door = True
+    scene.rebuild_all_building_entrances()
+
+    assert room.entrances == [edge]
+    assert scene.building_entrances["B0"] == (2, 3)
+
+
+def test_village_renderer_uses_space_themes_for_buildings_and_roads():
+    scene = VillageScene(n_rows=1, n_cols=2)
+    building = Room(name="B0", cells={scene.grid.cells[0][0]}, theme="treasury")
+    road = Hallway(ordered_cells=[scene.grid.cells[0][1]], name="R0", theme="crypt")
+    scene.grid.cells[0][0].filled = False
+    scene.grid.cells[0][1].filled = False
+    scene.add_building(building)
+    scene.add_road(road)
+    scene.emplace_space(building)
+    scene.emplace_space(road)
+
+    renderer = VillageRenderer(tile_size=20)
+    arr = np.array(renderer._build_image(scene))
+
+    building_tile = arr[:, :20]
+    road_tile = arr[:, 20:]
+    assert not np.array_equal(building_tile, road_tile)
 
 
 @pytest.mark.slow

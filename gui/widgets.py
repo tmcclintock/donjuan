@@ -330,15 +330,41 @@ class ControlPanel(QWidget):
         layout.setContentsMargins(12, 16, 12, 8)
 
         # Hint label
-        hint = QLabel(
+        self._edit_hint = QLabel(
             "Click / drag  —  paint cells\n"
             "Shift + click  —  toggle door\n"
             "Alt + click  —  apply theme\n"
             "Cmd + Z  —  undo"
         )
-        hint.setStyleSheet("color: #6c7086; font-size: 11px; line-height: 1.6;")
-        hint.setWordWrap(True)
-        layout.addWidget(hint)
+        self._edit_hint.setStyleSheet("color: #6c7086; font-size: 11px; line-height: 1.6;")
+        self._edit_hint.setWordWrap(True)
+        layout.addWidget(self._edit_hint)
+
+        self._village_tools_box = QGroupBox("Village Tool")
+        tools_layout = QGridLayout(self._village_tools_box)
+        tools_layout.setSpacing(4)
+        tools_layout.setContentsMargins(6, 8, 6, 8)
+        self._village_tool_group = QButtonGroup(self)
+        self._village_tool_group.setExclusive(True)
+
+        tool_specs = [
+            ("building", "Building"),
+            ("road", "Road"),
+            ("tree", "Tree"),
+            ("erase", "Erase"),
+            ("door", "Door"),
+        ]
+        for i, (key, label) in enumerate(tool_specs):
+            btn = QPushButton(label)
+            btn.setObjectName("villageToolButton")
+            btn.setCheckable(True)
+            btn.setProperty("villageTool", key)
+            btn.setMinimumHeight(28)
+            self._village_tool_group.addButton(btn)
+            tools_layout.addWidget(btn, i // 2, i % 2)
+        self._village_tool_group.buttons()[0].setChecked(True)
+        self._village_tools_box.hide()
+        layout.addWidget(self._village_tools_box)
 
         layout.addWidget(Divider())
 
@@ -398,10 +424,34 @@ class ControlPanel(QWidget):
         """Switch between generate (0) and edit (1) panels."""
         self._stack.setCurrentIndex(1 if active else 0)
 
+    def set_edit_scene_type(self, scene_type: str) -> None:
+        scene = scene_type.lower()
+        is_village = scene == "village"
+        self._village_tools_box.setVisible(is_village)
+        if is_village:
+            self._edit_hint.setText(
+                "Use the selected tool to paint\n"
+                "Door  —  click a building edge\n"
+                "Building / Road use the selected theme\n"
+                "Cmd + Z  —  undo"
+            )
+        else:
+            self._edit_hint.setText(
+                "Click / drag  —  paint cells\n"
+                "Shift + click  —  toggle door\n"
+                "Alt + click  —  apply theme\n"
+                "Cmd + Z  —  undo"
+            )
+
     @property
     def current_theme(self) -> str:
         btn = self._theme_btn_group.checkedButton()
         return btn.property("themeKey") if btn is not None else "default"
+
+    @property
+    def current_village_tool(self) -> str:
+        btn = self._village_tool_group.checkedButton()
+        return btn.property("villageTool") if btn is not None else "building"
 
     def set_seed(self, seed: int) -> None:
         self.seed_input.setText(str(seed))

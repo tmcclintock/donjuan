@@ -1,4 +1,5 @@
 """Tests for ForestScene, ForestRandomizer, and ForestRenderer."""
+import numpy as np
 import pytest
 
 from donjuan import ForestRenderer, ForestScene, Scene
@@ -125,6 +126,19 @@ def test_forest_small_grid_does_not_crash():
     """Tiny grids should not raise even if few trees fit."""
     scene = ForestScene(n_rows=4, n_cols=4)
     ForestRandomizer(tree_density=0.1, min_tree_spacing=3).randomize(scene)
+
+
+def test_forest_renderer_uses_tree_icon_palette():
+    renderer = ForestRenderer(tile_size=24, wall_shadows=False, canopy_bleed=False)
+    from PIL import Image
+    img = Image.new("RGB", (24, 24), (0, 0, 0))
+    renderer._draw_tree(img, 0, 0)
+    arr = np.array(img)
+
+    canopy_color = np.array([38, 92, 40], dtype=np.uint8)
+    trunk_color = np.array([90, 58, 26], dtype=np.uint8)
+    assert np.any(np.all(arr == canopy_color, axis=2))
+    assert np.any(np.all(arr == trunk_color, axis=2))
 
 
 # ── ForestRenderer ──────────────────────────────────────────────────────────

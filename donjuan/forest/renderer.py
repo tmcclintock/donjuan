@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image, ImageDraw
 
+from donjuan.core.tree_icon import draw_tree_icon
 from donjuan.forest.scene import ForestScene, Tree, Undergrowth
 from donjuan.core.renderer import BaseRenderer
 
@@ -38,16 +39,10 @@ _PALETTE = {
     "brush_hi":       (58,   90,  28),  # lighter leaf highlight
     "brush_blob":     (35,   58,  15),  # leaf cluster marks
 
-    # Tree trunk
-    "trunk":          (38,   25,  12),  # dark brown bark
-    "trunk_hi":       (60,   42,  20),  # lit side of trunk
-    "trunk_shadow":   (22,   14,   6),  # shadow side
-
-    # Tree canopy
-    "canopy_dark":    (18,   48,  12),  # deep inner canopy
-    "canopy_mid":     (28,   72,  18),  # main canopy fill
-    "canopy_hi":      (42,   95,  28),  # sunlit canopy tip
-    "canopy_edge":    (48,   28,   8),  # outer canopy edge — dark bark brown
+    # Tree icon
+    "tree_trunk":     (90,   58,  26),
+    "tree_canopy":    (38,   92,  40),
+    "tree_canopy_hi": (56,  126,  54),
 
     # Ground shadow under trees (cast by canopy)
     "tree_shadow":    (55,   78,  30),  # slightly darker ground near trees
@@ -153,17 +148,11 @@ class ForestRenderer(BaseRenderer):
         # ── Stage 3: canopy ground shadow (drawn before trees) ─────────
         self._draw_canopy_ground_shadow(img, scene, filled, t, pad)
 
-        # ── Stage 4: trunks first, then canopy so canopy overlaps trunk ─
+        # ── Stage 4: tree icons ───────────────────────────────────────
         for r in range(rows):
             for c in range(cols):
                 if filled[r, c]:
-                    self._draw_trunk(img, c * t + pad, r * t + pad,
-                                     r * 10_007 + c + 1)
-        for r in range(rows):
-            for c in range(cols):
-                if filled[r, c]:
-                    self._draw_canopy(img, c * t + pad, r * t + pad,
-                                      r * 10_007 + c + 2)
+                    self._draw_tree(img, c * t + pad, r * t + pad)
 
         # ── Stage 6: wall shadows (numpy) ──────────────────────────────
         if self.wall_shadows:
@@ -296,89 +285,9 @@ class ForestRenderer(BaseRenderer):
                     draw.ellipse([ex, ey, ex + ew, ey + eh],
                                  fill=_PALETTE["tree_shadow"])
 
-    # ── Tree trunk ────────────────────────────────────────────────────────────
-
-    def _draw_trunk(
-        self, img: Image.Image, x0: int, y0: int, seed: int
-    ) -> None:
-        rng = _random.Random(seed)
-        t = self.tile_size
+    def _draw_tree(self, img: Image.Image, x0: int, y0: int) -> None:
         draw = ImageDraw.Draw(img)
-        p = _PALETTE
-
-        ts = max(3, t // 5)
-        cx = x0 + t // 2 + rng.randint(-t // 10, t // 10)
-        cy = y0 + t // 2 + rng.randint(-t // 10, t // 10)
-
-        # Shadow offset
-        draw.ellipse(
-            [cx - ts + 2, cy - ts + 2, cx + ts + 2, cy + ts + 2],
-            fill=p["trunk_shadow"],
-        )
-        # Main trunk
-        draw.ellipse(
-            [cx - ts, cy - ts, cx + ts, cy + ts],
-            fill=p["trunk"],
-        )
-        # Highlight (top-left)
-        hs = max(1, ts // 2)
-        draw.ellipse(
-            [cx - ts, cy - ts, cx - ts + hs * 2, cy - ts + hs * 2],
-            fill=p["trunk_hi"],
-        )
-
-    # ── Tree canopy ───────────────────────────────────────────────────────────
-
-    def _draw_canopy(
-        self, img: Image.Image, x0: int, y0: int, seed: int
-    ) -> None:
-        """Layered green canopy, optionally bleeding beyond the cell boundary."""
-        rng = _random.Random(seed)
-        t = self.tile_size
-        draw = ImageDraw.Draw(img)
-        p = _PALETTE
-
-        cx = x0 + t // 2 + rng.randint(-t // 12, t // 12)
-        cy = y0 + t // 2 + rng.randint(-t // 12, t // 12)
-
-        bleed = (t * 3 // 10) if self.canopy_bleed else 0
-        outer_r = t // 2 + bleed
-        mid_r   = int(outer_r * 0.72)
-        inner_r = int(outer_r * 0.42)
-
-        # Outer dark ring
-        v = rng.randint(-4, 4)
-        r0, g0, b0 = p["canopy_edge"]
-        draw.ellipse(
-            [cx - outer_r, cy - outer_r, cx + outer_r, cy + outer_r],
-            fill=(min(255, max(0, r0 + v)),
-                  min(255, max(0, g0 + v)),
-                  min(255, max(0, b0 + v // 2))),
-        )
-
-        # Mid fill
-        v = rng.randint(-6, 8)
-        r0, g0, b0 = p["canopy_mid"]
-        draw.ellipse(
-            [cx - mid_r, cy - mid_r, cx + mid_r, cy + mid_r],
-            fill=(min(255, max(0, r0 + v)),
-                  min(255, max(0, g0 + v)),
-                  min(255, max(0, b0 + v // 2))),
-        )
-
-        # Inner highlight blobs
-        for _ in range(rng.randint(2, 3)):
-            ox = rng.randint(-inner_r // 2, inner_r // 2)
-            oy = rng.randint(-inner_r // 2, inner_r // 2)
-            hr = rng.randint(inner_r // 2, inner_r)
-            v2 = rng.randint(0, 12)
-            r1, g1, b1 = p["canopy_hi"]
-            draw.ellipse(
-                [cx + ox - hr, cy + oy - hr, cx + ox + hr, cy + oy + hr],
-                fill=(min(255, max(0, r1 + v2)),
-                      min(255, max(0, g1 + v2)),
-                      min(255, max(0, b1 + v2 // 2))),
-            )
+        draw_tree_icon(draw, x0, y0, self.tile_size, _PALETTE)
 
     # ── Wall shadows (numpy) ──────────────────────────────────────────────────
 

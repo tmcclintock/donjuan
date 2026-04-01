@@ -73,6 +73,24 @@ def test_exporter_builds_tree_circle_walls():
             assert abs(dist - 42.0) < 2.0
 
 
+def test_exporter_default_tree_wall_radius_is_smaller():
+    scene = VillageScene(n_rows=5, n_cols=5)
+    scene.grid.cells[2][2].filled = True
+    from donjuan.village.scene import VillageTree
+
+    tree = VillageTree(cells={scene.grid.cells[2][2]}, name="T0")
+    scene.emplace_space(tree)
+    scene.add_tree(tree)
+
+    exporter = VillageExporter(tile_size=100, tree_wall_segments=8, add_boundary_walls=False)
+    wall = exporter._build_walls(scene)[0]
+    cx = 250
+    cy = 250
+    x1, y1, _, _ = wall["c"]
+    dist = math.sqrt((x1 - cx) ** 2 + (y1 - cy) ** 2)
+    assert abs(dist - 34.0) < 2.0
+
+
 def test_exporter_scene_json_structure():
     scene = _make_scene()
     exporter = VillageExporter(tile_size=50)

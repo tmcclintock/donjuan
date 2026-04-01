@@ -11,6 +11,8 @@ from PIL import Image, ImageDraw
 from donjuan.core.hallway import Hallway
 from donjuan.core.renderer import BaseRenderer
 from donjuan.core.room import Room
+from donjuan.core.tree_icon import draw_tree_icon
+from donjuan.dungeon.renderer import SPACE_THEMES
 from donjuan.village.scene import VillageScene, VillageTree
 
 _PALETTE = {
@@ -71,10 +73,13 @@ class VillageRenderer(BaseRenderer):
                 if cell.filled and isinstance(cell.space, VillageTree):
                     self._draw_ground(img, x0, y0, seed)
                 elif isinstance(cell.space, Hallway):
+                    self._active_theme = getattr(cell.space, "theme", "default")
                     self._draw_road(img, x0, y0, seed)
                 elif isinstance(cell.space, Room):
+                    self._active_theme = getattr(cell.space, "theme", "default")
                     self._draw_building_floor(img, x0, y0, seed)
                 else:
+                    self._active_theme = "default"
                     self._draw_ground(img, x0, y0, seed)
 
         for building in scene.buildings.values():
@@ -111,26 +116,30 @@ class VillageRenderer(BaseRenderer):
         rng = _random.Random(seed)
         t = self.tile_size
         draw = ImageDraw.Draw(img)
-        draw.rectangle([x0, y0, x0 + t - 1, y0 + t - 1], fill=_PALETTE["road_base"])
+        base = self._road_base(seed)
+        hi = self._tint_color(base, 26)
+        draw.rectangle([x0, y0, x0 + t - 1, y0 + t - 1], fill=base)
         for _ in range(4):
             rx = x0 + rng.randint(1, t - 5)
             ry = y0 + rng.randint(1, t - 5)
             rw = rng.randint(2, max(3, t // 5))
             rh = rng.randint(2, max(3, t // 5))
-            draw.rectangle([rx, ry, rx + rw, ry + rh], fill=_PALETTE["road_hi"])
+            draw.rectangle([rx, ry, rx + rw, ry + rh], fill=hi)
 
     def _draw_building_floor(self, img: Image.Image, x0: int, y0: int, seed: int) -> None:
         rng = _random.Random(seed)
         t = self.tile_size
         draw = ImageDraw.Draw(img)
+        base = self._building_floor_base(seed)
+        wash = self._tint_color(base, 24)
         draw.rectangle(
             [x0, y0, x0 + t - 1, y0 + t - 1],
-            fill=_PALETTE["building_floor"],
+            fill=base,
         )
         for _ in range(2):
             rx = x0 + rng.randint(2, t - 8)
             ry = y0 + rng.randint(2, t - 8)
-            draw.rectangle([rx, ry, rx + 4, ry + 3], fill=_PALETTE["building_wash"])
+            draw.rectangle([rx, ry, rx + 4, ry + 3], fill=wash)
 
     def _draw_building_walls(self, img: Image.Image, building: Room) -> None:
         draw = ImageDraw.Draw(img)
@@ -178,18 +187,32 @@ class VillageRenderer(BaseRenderer):
         draw = ImageDraw.Draw(img)
         t = self.tile_size
         x0, y0 = cell.x * t, cell.y * t
-        draw.ellipse(
-            [x0 + t * 0.35, y0 + t * 0.5, x0 + t * 0.65, y0 + t * 0.95],
-            fill=_PALETTE["tree_trunk"],
-        )
-        draw.ellipse(
-            [x0 + t * 0.08, y0 + t * 0.08, x0 + t * 0.92, y0 + t * 0.86],
-            fill=_PALETTE["tree_canopy"],
-        )
-        draw.ellipse(
-            [x0 + t * 0.2, y0 + t * 0.14, x0 + t * 0.72, y0 + t * 0.56],
-            fill=_PALETTE["tree_canopy_hi"],
-        )
+        draw_tree_icon(draw, x0, y0, t, _PALETTE)
+
+    def _building_floor_base(self, seed: int) -> Tuple[int, int, int]:
+        return self._space_base_color(seed, "building_floor")
+
+    def _road_base(self, seed: int) -> Tuple[int, int, int]:
+        return self._space_base_color(seed, "road_base", dim=26)
+
+    def _space_base_color(
+        self,
+        seed: int,
+        fallback_key: str,
+        dim: int = 0,
+    ) -> Tuple[int, int, int]:
+        fallback = _PALETTE[fallback_key]
+        override = SPACE_THEMES.get(getattr(self, "_active_theme", "default"))
+        base = override if override is not None else fallback
+        if dim:
+            base = self._tint_color(base, -dim)
+        rng = _random.Random(seed)
+        delta = rng.randint(-8, 8)
+        return self._tint_color(base, delta)
+
+    @staticmethod
+    def _tint_color(color: Tuple[int, int, int], delta: int) -> Tuple[int, int, int]:
+        return tuple(min(255, max(0, channel + delta)) for channel in color)
 
     def _apply_vignette(self, img: Image.Image) -> Image.Image:
         arr = np.array(img, dtype=np.float32)
