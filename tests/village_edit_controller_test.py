@@ -124,10 +124,35 @@ def test_door_tool_toggles_building_perimeter_edge_and_syncs_entrances():
 
     edge = _edge_between(scene.grid.cells[2][2], (2, 3))
     assert edge.has_door is True
+    assert edge.door_kind == "normal"
     building = scene.grid.cells[2][2].space
     assert building.entrances == [edge]
     assert scene.building_entrances[building.name] == (2, 3)
     assert rerenders == ["rerender"]
+
+
+def test_door_tool_cycles_normal_locked_secret_and_removed():
+    controller, scene, status, _ = _make_controller(tool="building")
+    controller._apply_tool(2, 2)
+    controller._drag_tool = "door"
+
+    edge = _edge_between(scene.grid.cells[2][2], (2, 3))
+
+    controller._toggle_door_at(2, 2, 30, 25)
+    assert edge.door_kind == "normal"
+    assert "normal door" in status.last_message
+
+    controller._toggle_door_at(2, 2, 30, 25)
+    assert edge.door_kind == "locked"
+    assert "locked door" in status.last_message
+
+    controller._toggle_door_at(2, 2, 30, 25)
+    assert edge.door_kind == "secret"
+    assert "secret door" in status.last_message
+
+    controller._toggle_door_at(2, 2, 30, 25)
+    assert edge.has_door is False
+    assert "door removed" in status.last_message
 
 
 def test_door_tool_ignores_non_building_edges():

@@ -46,6 +46,26 @@ _MAX_DISPLAY_INCHES = 8.0
 _SCREEN_DPI = 100
 
 
+def _overlay_style_for_wall(wall: dict):
+    flags = wall.get("flags", {}).get("donjuan", {})
+    door_kind = flags.get("door_kind")
+    wall_kind = flags.get("wall_kind", "solid")
+
+    if door_kind == "locked":
+        return "#ffb86c", 2.6
+    if door_kind == "secret":
+        return "#ff79c6", 2.6
+    if wall.get("door") in (1, 2):
+        return "#6699ff", 2.5
+    if wall_kind == "movement":
+        return "#4dd0a8", 2.0
+    if wall_kind == "sight":
+        return "#c792ea", 2.0
+    if wall_kind == "dense":
+        return "#8fbf5f", 2.1
+    return "#ffffaa", 1.5
+
+
 class AppController:
     """
     Handles the Generate and Save actions. Owns the last-generated
@@ -321,21 +341,7 @@ class AppController:
 
         for wall in walls:
             x1, y1, x2, y2 = wall["c"]
-            is_door = wall["door"] == 1
-            is_movement_only = (
-                wall["move"] == 20
-                and wall["sight"] == 0
-                and wall["light"] == 0
-            )
-            if is_door:
-                color = "#6699ff"
-                lw = 2.5
-            elif is_movement_only:
-                color = "#4dd0a8"
-                lw = 2.0
-            else:
-                color = "#ffffaa"
-                lw = 1.5
+            color, lw = _overlay_style_for_wall(wall)
             line, = ax.plot(
                 [x1, x2], [y1, y2],
                 color=color, alpha=0.85, linewidth=lw,

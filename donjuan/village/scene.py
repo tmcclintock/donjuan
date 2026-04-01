@@ -97,7 +97,7 @@ class VillageScene(Scene):
     def clear_doors_for_cell(self, cell) -> None:
         for edge in cell.edges or []:
             if edge is not None:
-                edge.has_door = False
+                edge.clear_door()
         self.rebuild_all_building_entrances()
 
     def rebuild_all_building_entrances(self) -> None:

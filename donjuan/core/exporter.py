@@ -9,6 +9,18 @@ import re
 import secrets
 from typing import List, Optional, Tuple
 
+from donjuan.core.edge import (
+    DOOR_KIND_LOCKED,
+    DOOR_KIND_NORMAL,
+    DOOR_KIND_SECRET,
+    DOOR_STATE_CLOSED,
+    DOOR_STATE_LOCKED,
+    DOOR_STATE_OPEN,
+    WALL_KIND_DENSE,
+    WALL_KIND_MOVEMENT,
+    WALL_KIND_SIGHT,
+    WALL_KIND_SOLID,
+)
 from donjuan.core.scene import Scene
 
 
@@ -207,60 +219,114 @@ def _shared_edge_coords(c1, c2, t: int) -> Optional[List[int]]:
 
 
 def _solid_wall(coords: List[int]) -> dict:
-    return {
-        "_id": _random_id(),
-        "c": coords,
-        "light": 20,
-        "move": 20,
-        "sight": 20,
-        "sound": 20,
-        "dir": 0,
-        "door": 0,
-        "ds": 0,
-        "threshold": {
-            "light": None, "sight": None,
-            "sound": None, "attenuation": False,
-        },
-        "flags": {},
-    }
+    return _wall_document(coords, wall_kind=WALL_KIND_SOLID)
 
 
-def _door_wall(coords: List[int]) -> dict:
-    return {
-        "_id": _random_id(),
-        "c": coords,
-        "light": 20,
-        "move": 20,
-        "sight": 20,
-        "sound": 20,
-        "dir": 0,
-        "door": 1,
-        "ds": 0,
-        "threshold": {
-            "light": None, "sight": None,
-            "sound": None, "attenuation": False,
-        },
-        "flags": {},
-    }
+def _door_wall(coords: List[int], door_kind: str = DOOR_KIND_NORMAL) -> dict:
+    return _wall_document(
+        coords,
+        door_kind=door_kind,
+        door_state=DOOR_STATE_LOCKED if door_kind == DOOR_KIND_LOCKED else DOOR_STATE_CLOSED,
+    )
+
+
+def _locked_door_wall(coords: List[int]) -> dict:
+    return _wall_document(coords, door_kind=DOOR_KIND_LOCKED, door_state=DOOR_STATE_LOCKED)
+
+
+def _secret_door_wall(coords: List[int]) -> dict:
+    return _wall_document(coords, door_kind=DOOR_KIND_SECRET)
 
 
 def _movement_wall(coords: List[int]) -> dict:
     """Wall that blocks movement but not vision, light, or sound."""
+    return _wall_document(coords, wall_kind=WALL_KIND_MOVEMENT)
+
+
+def _sight_wall(coords: List[int]) -> dict:
+    """Wall that blocks sight/light but not movement."""
+    return _wall_document(coords, wall_kind=WALL_KIND_SIGHT)
+
+
+def _dense_wall(coords: List[int]) -> dict:
+    """Wall that blocks movement and sight but is distinct from structure."""
+    return _wall_document(coords, wall_kind=WALL_KIND_DENSE)
+
+
+def _edge_wall(coords: List[int], edge, fallback_wall_kind: str = WALL_KIND_SOLID) -> dict:
+    if getattr(edge, "has_door", False):
+        return _wall_document(
+            coords,
+            door_kind=getattr(edge, "door_kind", None) or DOOR_KIND_NORMAL,
+            door_state=getattr(edge, "door_state", None),
+        )
+    return _wall_document(
+        coords,
+        wall_kind=getattr(edge, "wall_kind", None) or fallback_wall_kind,
+    )
+
+
+def _wall_document(
+    coords: List[int],
+    door_kind: Optional[str] = None,
+    door_state: Optional[str] = None,
+    wall_kind: str = WALL_KIND_SOLID,
+) -> dict:
+    door_type = 0
+    ds = 0
+    light = 20
+    move = 20
+    sight = 20
+    sound = 20
+
+    if door_kind is not None:
+        if door_kind == DOOR_KIND_SECRET:
+            door_type = 2
+        else:
+            door_type = 1
+        if (door_state or DOOR_STATE_CLOSED) == DOOR_STATE_OPEN:
+            ds = 1
+        elif (door_state or DOOR_STATE_CLOSED) == DOOR_STATE_LOCKED:
+            ds = 2
+        else:
+            ds = 0
+    elif wall_kind == WALL_KIND_MOVEMENT:
+        light = 0
+        sight = 0
+        sound = 0
+    elif wall_kind == WALL_KIND_SIGHT:
+        move = 0
+        light = 20
+        sight = 20
+        sound = 0
+    elif wall_kind == WALL_KIND_DENSE:
+        light = 20
+        move = 20
+        sight = 20
+        sound = 0
+
+    flags = {
+        "donjuan": {
+            "wall_kind": wall_kind,
+            "door_kind": door_kind,
+            "door_state": door_state or (DOOR_STATE_CLOSED if door_kind else None),
+        }
+    }
     return {
         "_id": _random_id(),
         "c": coords,
-        "light": 0,
-        "move": 20,
-        "sight": 0,
-        "sound": 0,
+        "light": light,
+        "move": move,
+        "sight": sight,
+        "sound": sound,
         "dir": 0,
-        "door": 0,
-        "ds": 0,
+        "door": door_type,
+        "ds": ds,
         "threshold": {
             "light": None, "sight": None,
             "sound": None, "attenuation": False,
         },
-        "flags": {},
+        "flags": flags,
     }
 
 

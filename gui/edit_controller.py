@@ -270,10 +270,12 @@ class EditController:
             )
             return
 
-        edge.has_door = not edge.has_door
-        self._status.showMessage(
-            f"Edit mode  ·  door {'added' if edge.has_door else 'removed'} at ({row}, {col})"
-        )
+        next_kind = edge.cycle_door_kind()
+        if next_kind is None:
+            msg = f"Edit mode  ·  door removed at ({row}, {col})"
+        else:
+            msg = f"Edit mode  ·  {next_kind} door set at ({row}, {col})"
+        self._status.showMessage(msg)
         self._rerender()
 
     def _nearest_edge(self, row: int, col: int, xdata: float, ydata: float):
@@ -336,11 +338,11 @@ class EditController:
         if cell.edges:
             for edge in cell.edges:
                 if edge is not None:
-                    edge.has_door = False
+                    edge.clear_door()
 
         self._status.showMessage(
             f"Edit mode  ·  cell ({row}, {col}) → {'filled' if cell.filled else 'open'}  ·  "
-            "release to commit  ·  Shift+click wall edge to toggle door"
+            "release to commit  ·  Shift+click wall edge to cycle door type"
         )
 
         if isinstance(self._renderer, TexturedRenderer):
@@ -388,7 +390,13 @@ class EditController:
                 for edge in cell.edges:
                     if edge is not None and id(edge) not in seen:
                         seen.add(id(edge))
-                        edges[id(edge)] = (edge, edge.has_door)
+                        edges[id(edge)] = (
+                            edge,
+                            edge.has_door,
+                            edge.door_kind,
+                            edge.door_state,
+                            edge.wall_kind,
+                        )
         return {"cells": cells, "edges": edges}
 
     def _restore_snapshot(self, snapshot: dict) -> None:
@@ -396,8 +404,12 @@ class EditController:
             cell = self._dungeon.grid.cells[r][c]
             cell.filled = filled
             cell.set_space(space)
-        for _eid, (edge, has_door) in snapshot["edges"].items():
-            edge.has_door = has_door
+        for _eid, (edge, has_door, door_kind, door_state, wall_kind) in snapshot["edges"].items():
+            edge.wall_kind = wall_kind
+            if has_door:
+                edge.set_door(kind=door_kind, state=door_state)
+            else:
+                edge.clear_door()
 
     # ── Coordinate helpers ─────────────────────────────────────────────
 

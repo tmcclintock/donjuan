@@ -6,7 +6,8 @@ from typing import List
 
 from donjuan.core.exporter import (
     FoundryExporter,
-    _door_wall,
+    _dense_wall,
+    _edge_wall,
     _shared_edge_coords,
     _solid_wall,
 )
@@ -89,10 +90,7 @@ class VillageExporter(FoundryExporter):
                     coords = _shared_edge_coords(c1, c2, t)
                     if coords is None:
                         continue
-                    if edge.has_door:
-                        walls.append(_door_wall(coords))
-                    else:
-                        walls.append(_solid_wall(coords))
+                    walls.append(_edge_wall(coords, edge))
         return walls
 
     def _tree_circle_walls(self, row: int, col: int) -> List[dict]:
@@ -109,5 +107,5 @@ class VillageExporter(FoundryExporter):
             y1 = cy + radius * math.sin(a1)
             x2 = cx + radius * math.cos(a2)
             y2 = cy + radius * math.sin(a2)
-            walls.append(_solid_wall([round(x1), round(y1), round(x2), round(y2)]))
+            walls.append(_dense_wall([round(x1), round(y1), round(x2), round(y2)]))
         return walls

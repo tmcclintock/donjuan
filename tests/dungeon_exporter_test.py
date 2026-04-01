@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 
 from donjuan import Dungeon
+from donjuan.core.edge import DOOR_KIND_LOCKED, DOOR_KIND_SECRET, WALL_KIND_DENSE
 from donjuan.core.hallway import Hallway
 from donjuan.core.room import Room
 from donjuan.dungeon.exporter import DungeonExporter, _edge_is_interior
@@ -114,6 +115,27 @@ def test_build_lights_ignores_invalid_doors_and_deduplicates_edges():
     assert len(lights) == 1
     assert lights[0]["x"] == 10.0
     assert lights[0]["y"] == 15.0
+
+
+def test_build_walls_exports_locked_and_secret_doors_from_edge_metadata():
+    dungeon = Dungeon(n_rows=3, n_cols=3)
+    exporter = DungeonExporter(tile_size=10)
+    _open_room(dungeon, "left", {(1, 0)})
+    _open_room(dungeon, "right", {(1, 1)})
+    edge = dungeon.grid.cells[1][0].edges[3]
+    edge.set_door(kind=DOOR_KIND_LOCKED)
+
+    walls = exporter._build_walls(dungeon)
+    locked = next(w for w in walls if tuple(w["c"]) == (10, 10, 10, 20))
+    assert locked["door"] == 1
+    assert locked["ds"] == 2
+    assert locked["flags"]["donjuan"]["door_kind"] == DOOR_KIND_LOCKED
+
+    edge.set_door(kind=DOOR_KIND_SECRET)
+    walls = exporter._build_walls(dungeon)
+    secret = next(w for w in walls if tuple(w["c"]) == (10, 10, 10, 20))
+    assert secret["door"] == 2
+    assert secret["flags"]["donjuan"]["door_kind"] == DOOR_KIND_SECRET
 
 
 def test_build_lights_can_be_disabled():

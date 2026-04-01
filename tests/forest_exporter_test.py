@@ -117,6 +117,7 @@ def test_exporter_tree_walls_form_circle():
                 f"Point ({px},{py}) is {dist:.1f}px from centre, "
                 f"expected ~{expected_radius}"
             )
+            assert w["flags"]["donjuan"]["wall_kind"] == "dense"
 
 
 def test_exporter_wall_structure():
@@ -195,6 +196,7 @@ def test_exporter_undergrowth_walls_block_movement_only():
         assert wall["light"] == 0
         assert wall["sound"] == 0
         assert wall["door"] == 0
+        assert wall["flags"]["donjuan"]["wall_kind"] == "movement"
 
 
 # ── Integration: full export to disk ─────────────────────────────────────────

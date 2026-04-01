@@ -9,7 +9,7 @@ from typing import List
 from donjuan.core.exporter import (
     FoundryExporter,
     _boundary_coords,
-    _door_wall,
+    _edge_wall,
     _shared_edge_coords,
     _solid_wall,
     _torch_light,
@@ -140,11 +140,11 @@ class DungeonExporter(FoundryExporter):
                         continue
 
                     if edge.has_door:
-                        out.append(_door_wall(coords))
+                        out.append(_edge_wall(coords, edge))
                     elif _edge_is_interior(c1, c2, dungeon):
                         pass
                     else:
-                        out.append(_solid_wall(coords))
+                        out.append(_edge_wall(coords, edge))
 
         return out
 

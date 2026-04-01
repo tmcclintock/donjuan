@@ -88,6 +88,7 @@ def test_exporter_tree_walls_form_circle():
         for px, py in [(x1, y1), (x2, y2)]:
             dist = math.sqrt((px - cx) ** 2 + (py - cy) ** 2)
             assert abs(dist - expected_radius) < 2.0
+        assert wall["flags"]["donjuan"]["wall_kind"] == "dense"
 
 
 def test_exporter_builds_fire_lights():
@@ -128,6 +129,7 @@ def test_exporter_tent_walls_block_movement_only():
         assert wall["light"] == 0
         assert wall["sound"] == 0
         assert wall["door"] == 0
+        assert wall["flags"]["donjuan"]["wall_kind"] == "movement"
 
 
 def test_exporter_scene_json_structure():

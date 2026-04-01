@@ -6,6 +6,7 @@ import os
 import pytest
 
 from donjuan import VillageExporter, VillageRandomizer, VillageScene
+from donjuan.core.edge import DOOR_KIND_LOCKED, DOOR_KIND_SECRET, WALL_KIND_DENSE
 from donjuan.core.randomizer import Randomizer
 
 
@@ -89,6 +90,39 @@ def test_exporter_default_tree_wall_radius_is_smaller():
     x1, y1, _, _ = wall["c"]
     dist = math.sqrt((x1 - cx) ** 2 + (y1 - cy) ** 2)
     assert abs(dist - 34.0) < 2.0
+    assert wall["flags"]["donjuan"]["wall_kind"] == WALL_KIND_DENSE
+
+
+def test_exporter_builds_locked_and_secret_building_doors():
+    scene = VillageScene(n_rows=5, n_cols=5)
+    from donjuan.core.room import Room
+
+    building = Room(name="B0", cells={scene.grid.cells[2][2]})
+    scene.grid.cells[2][2].filled = False
+    scene.add_building(building)
+    scene.emplace_space(building)
+
+    edge = next(
+        edge for edge in scene.grid.cells[2][2].edges
+        if edge is not None
+        and {
+            None if edge.cell1 is None else edge.cell1.coordinates,
+            None if edge.cell2 is None else edge.cell2.coordinates,
+        } == {(2, 2), (2, 3)}
+    )
+    edge.set_door(kind=DOOR_KIND_LOCKED)
+    scene.rebuild_all_building_entrances()
+
+    exporter = VillageExporter(tile_size=50, add_boundary_walls=False)
+    wall = next(w for w in exporter._build_walls(scene) if w["door"] != 0)
+    assert wall["door"] == 1
+    assert wall["ds"] == 2
+
+    edge.set_door(kind=DOOR_KIND_SECRET)
+    scene.rebuild_all_building_entrances()
+    wall = next(w for w in exporter._build_walls(scene) if w["door"] != 0)
+    assert wall["door"] == 2
+    assert wall["flags"]["donjuan"]["door_kind"] == DOOR_KIND_SECRET
 
 
 def test_exporter_scene_json_structure():

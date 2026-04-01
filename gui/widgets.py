@@ -332,7 +332,7 @@ class ControlPanel(QWidget):
         # Hint label
         self._edit_hint = QLabel(
             "Click / drag  —  paint cells\n"
-            "Shift + click  —  toggle door\n"
+            "Shift + click  —  cycle door type\n"
             "Alt + click  —  apply theme\n"
             "Cmd + Z  —  undo"
         )
@@ -438,7 +438,7 @@ class ControlPanel(QWidget):
         else:
             self._edit_hint.setText(
                 "Click / drag  —  paint cells\n"
-                "Shift + click  —  toggle door\n"
+                "Shift + click  —  cycle door type\n"
                 "Alt + click  —  apply theme\n"
                 "Cmd + Z  —  undo"
             )

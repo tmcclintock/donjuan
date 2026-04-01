@@ -11,6 +11,7 @@ from donjuan.camp.scene import CampScene, Tent
 from donjuan.camp.renderer import CampRenderer
 from donjuan.core.exporter import (
     FoundryExporter,
+    _dense_wall,
     _movement_wall,
     _shared_edge_coords,
     _solid_wall,
@@ -123,7 +124,7 @@ class CampExporter(FoundryExporter):
             y1 = cy + radius * math.sin(a1)
             x2 = cx + radius * math.cos(a2)
             y2 = cy + radius * math.sin(a2)
-            walls.append(_solid_wall([round(x1), round(y1), round(x2), round(y2)]))
+            walls.append(_dense_wall([round(x1), round(y1), round(x2), round(y2)]))
 
         return walls
 

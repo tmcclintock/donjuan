@@ -8,12 +8,18 @@ from donjuan.core.cell import SquareCell
 from donjuan.core.exporter import (
     FoundryExporter,
     _boundary_coords,
+    _dense_wall,
     _door_wall,
+    _edge_wall,
+    _locked_door_wall,
     _movement_wall,
     _shared_edge_coords,
+    _sight_wall,
     _slugify,
     _solid_wall,
+    _secret_door_wall,
 )
+from donjuan.core.edge import DOOR_KIND_LOCKED, DOOR_KIND_SECRET, Edge, WALL_KIND_DENSE, WALL_KIND_MOVEMENT, WALL_KIND_SIGHT
 from donjuan.dungeon.exporter import DungeonExporter
 from donjuan.forest.scene import ForestScene
 
@@ -132,16 +138,54 @@ def test_wall_helper_types_have_expected_foundry_flags():
     solid = _solid_wall([0, 0, 10, 0])
     door = _door_wall([0, 0, 10, 0])
     movement = _movement_wall([0, 0, 10, 0])
+    locked = _locked_door_wall([0, 0, 10, 0])
+    secret = _secret_door_wall([0, 0, 10, 0])
+    sight = _sight_wall([0, 0, 10, 0])
+    dense = _dense_wall([0, 0, 10, 0])
 
     assert solid["move"] == 20
     assert solid["sight"] == 20
     assert solid["door"] == 0
+    assert solid["flags"]["donjuan"]["wall_kind"] == "solid"
 
     assert door["move"] == 20
     assert door["sight"] == 20
     assert door["door"] == 1
+    assert door["flags"]["donjuan"]["door_kind"] == "normal"
 
     assert movement["move"] == 20
     assert movement["sight"] == 0
     assert movement["light"] == 0
     assert movement["sound"] == 0
+    assert movement["flags"]["donjuan"]["wall_kind"] == WALL_KIND_MOVEMENT
+
+    assert locked["door"] == 1
+    assert locked["ds"] == 2
+    assert locked["flags"]["donjuan"]["door_kind"] == DOOR_KIND_LOCKED
+
+    assert secret["door"] == 2
+    assert secret["ds"] == 0
+    assert secret["flags"]["donjuan"]["door_kind"] == DOOR_KIND_SECRET
+
+    assert sight["move"] == 0
+    assert sight["sight"] == 20
+    assert sight["flags"]["donjuan"]["wall_kind"] == WALL_KIND_SIGHT
+
+    assert dense["move"] == 20
+    assert dense["sight"] == 20
+    assert dense["sound"] == 0
+    assert dense["flags"]["donjuan"]["wall_kind"] == WALL_KIND_DENSE
+
+
+def test_edge_wall_uses_edge_metadata():
+    edge = Edge()
+    edge.set_door(kind=DOOR_KIND_SECRET)
+    wall = _edge_wall([0, 0, 10, 0], edge)
+    assert wall["door"] == 2
+    assert wall["flags"]["donjuan"]["door_kind"] == DOOR_KIND_SECRET
+
+    edge.clear_door()
+    edge.wall_kind = WALL_KIND_DENSE
+    wall = _edge_wall([0, 0, 10, 0], edge)
+    assert wall["door"] == 0
+    assert wall["flags"]["donjuan"]["wall_kind"] == WALL_KIND_DENSE

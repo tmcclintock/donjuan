@@ -291,11 +291,13 @@ class VillageEditController:
             )
             return
 
-        edge.has_door = not edge.has_door
+        next_kind = edge.cycle_door_kind()
         self._scene.rebuild_all_building_entrances()
-        self._status.showMessage(
-            f"Village edit mode  ·  door {'added' if edge.has_door else 'removed'} at ({row}, {col})"
-        )
+        if next_kind is None:
+            msg = f"Village edit mode  ·  door removed at ({row}, {col})"
+        else:
+            msg = f"Village edit mode  ·  {next_kind} door set at ({row}, {col})"
+        self._status.showMessage(msg)
         self._rerender()
 
     def _update_hover(self, row: int, col: int, xdata: float, ydata: float) -> None:
@@ -370,7 +372,13 @@ class VillageEditController:
                 for edge in cell.edges or []:
                     if edge is not None and id(edge) not in seen_edges:
                         seen_edges.add(id(edge))
-                        edges[id(edge)] = (edge, edge.has_door)
+                        edges[id(edge)] = (
+                            edge,
+                            edge.has_door,
+                            edge.door_kind,
+                            edge.door_state,
+                            edge.wall_kind,
+                        )
 
         return {
             "cells": cells,
@@ -415,8 +423,12 @@ class VillageEditController:
             cell.filled = filled
             cell.set_space(space)
 
-        for _eid, (edge, has_door) in snapshot["edges"].items():
-            edge.has_door = has_door
+        for _eid, (edge, has_door, door_kind, door_state, wall_kind) in snapshot["edges"].items():
+            edge.wall_kind = wall_kind
+            if has_door:
+                edge.set_door(kind=door_kind, state=door_state)
+            else:
+                edge.clear_door()
 
     def _nearest_edge(self, row: int, col: int, xdata: float, ydata: float):
         edge_idx = self._nearest_edge_idx(row, col, xdata, ydata)
