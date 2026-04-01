@@ -9,6 +9,7 @@ from PyQt5.QtCore import QEvent, QObject
 from PyQt5.QtWidgets import QFileDialog, QInputDialog, QMessageBox
 
 from donjuan import Dungeon, DungeonRandomizer, FoundryExporter, HexRenderer, Renderer, TexturedRenderer
+from gui.edit_controller import EditController
 from donjuan.grid import HexGrid, SquareGrid
 from donjuan.randomizer import Randomizer
 from donjuan.room_randomizer import RoomSizeRandomizer
@@ -48,19 +49,27 @@ class AppController:
         save_action: the "Save PNG" QAction to enable after first generate
     """
 
-    def __init__(self, control_panel, canvas, status_bar, regen_action, save_action, export_action=None):
+    def __init__(self, control_panel, canvas, status_bar, regen_action, save_action, export_action=None, edit_action=None, undo_action=None):
         self._cp = control_panel
         self._canvas = canvas
         self._status = status_bar
         self._regen_action = regen_action
         self._save_action = save_action
         self._export_action = export_action
+        self._edit_action = edit_action
+        self._undo_action = undo_action
 
         self._dungeon = None
         self._fig = None
         self._renderer = None
         self._last_seed = None
         self._overlay_artists = []
+        self._edit_mode = False
+        self._edit_controller = None
+
+        if edit_action is not None:
+            edit_action.toggled.connect(self._on_edit_mode_toggled)
+        control_panel.edit_mode_btn.toggled.connect(self._on_edit_mode_toggled)
 
         # Show a Foundry preview overlay while hovering over the export button.
         self._hover_filter = _HoverFilter(
@@ -187,6 +196,39 @@ class AppController:
         )
         self._status.showMessage(f'Exported FoundryVTT scene "{scene_name}" \u2192 {output_dir}')
 
+    # ── Edit mode ──────────────────────────────────────────────────────
+
+    def _on_edit_mode_toggled(self, checked: bool) -> None:
+        if checked == self._edit_mode:
+            return  # already in the right state; avoid sync loops
+        self._edit_mode = checked
+
+        # Keep the menu action and panel button in sync with whichever fired.
+        for widget in (self._edit_action, self._cp.edit_mode_btn):
+            if widget is None:
+                continue
+            widget.blockSignals(True)
+            widget.setChecked(checked)
+            widget.blockSignals(False)
+
+        self._cp.set_edit_mode(checked)
+
+        if self._edit_controller is not None:
+            if checked:
+                self._edit_controller.activate()
+            else:
+                self._edit_controller.deactivate()
+
+        if self._undo_action is not None:
+            self._undo_action.setEnabled(checked)
+
+        if not checked:
+            self._status.showMessage("Edit mode off")
+
+    def on_undo(self) -> None:
+        if self._edit_mode and self._edit_controller is not None:
+            self._edit_controller.undo()
+
     # ── Foundry overlay ────────────────────────────────────────────────
 
     def _show_foundry_overlay(self) -> None:
@@ -249,6 +291,26 @@ class AppController:
 
     # ── Private helpers ────────────────────────────────────────────────
 
+    def _rerender_dungeon(self) -> None:
+        """Re-render the current dungeon in-place (no regeneration)."""
+        if self._dungeon is None or self._renderer is None:
+            return
+
+        fig, _ax = self._renderer.render(self._dungeon, save=False)
+        w, h = fig.get_size_inches()
+        scale = min(_MAX_DISPLAY_INCHES / max(w, h), 1.0)
+        fig.set_size_inches(w * scale, h * scale, forward=True)
+        fig.set_dpi(_SCREEN_DPI)
+        self._fig = fig
+
+        # update_figure destroys the old FigureCanvas, so deactivate first
+        # and reconnect the edit controller to the new canvas afterwards.
+        if self._edit_controller is not None:
+            self._edit_controller.deactivate()
+        self._canvas.update_figure(fig)
+        if self._edit_controller is not None and self._edit_mode:
+            self._edit_controller.activate()
+
     def _run_generation(self, params: dict) -> None:
         seed = params["seed"]
         Randomizer.seed(seed)
@@ -307,6 +369,22 @@ class AppController:
         self._fig = fig
         self._canvas.update_figure(fig)
 
+        # Rebuild the edit controller for the new dungeon/renderer.
+        # update_figure replaces the underlying FigureCanvas, so any old
+        # mpl_connect IDs are gone — always start fresh.
+        if self._edit_controller is not None:
+            self._edit_controller.deactivate()
+        self._edit_controller = EditController(
+            canvas=self._canvas,
+            dungeon=dungeon,
+            renderer=renderer,
+            status_bar=self._status,
+            rerender_fn=self._rerender_dungeon,
+            get_theme_fn=lambda: self._cp.current_theme,
+        )
+        if self._edit_mode:
+            self._edit_controller.activate()
+
         n_rooms = len(dungeon.rooms)
         n_hallways = len(dungeon.hallways)
         self._status.showMessage(
@@ -321,3 +399,6 @@ class AppController:
         self._save_action.setEnabled(True)
         if self._export_action is not None:
             self._export_action.setEnabled(True)
+        if self._edit_action is not None:
+            self._edit_action.setEnabled(True)
+        self._cp.edit_mode_btn.setEnabled(True)

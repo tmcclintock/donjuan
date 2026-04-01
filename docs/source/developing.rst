@@ -80,6 +80,31 @@ in the read array.
        for j in range(5):
            dungeon.grid.cells[i][j].filled = bool(dungeon_array[i][j])
 
+Room and Hallway Themes
+-----------------------
+
+Both ``Room`` and ``Hallway`` carry a ``theme`` attribute (default
+``"default"``) that drives floor colour in the ``TexturedRenderer``.
+Available theme keys are defined in ``SPACE_THEMES`` (exported from the
+``donjuan`` package):
+
+.. code-block:: python
+
+   from donjuan import SPACE_THEMES
+   # {"default": None, "treasury": (175, 145, 55), ...}
+
+Setting ``room.theme = "treasury"`` before rendering will override the pack's
+``floor_room`` colour with the treasury gold. A value of ``None`` means "use
+the pack default".
+
+To add a new theme, append an entry to ``SPACE_THEMES`` in
+``donjuan/textured_renderer.py`` and add a matching swatch to
+``_THEME_SWATCHES`` in ``gui/widgets.py``.
+
+In edit mode the GUI exposes theme selection via the *Room Theme* swatch
+group. Alt+clicking any room or hallway cell stamps the selected theme onto
+that entire space.
+
 Docstrings
 ----------
 

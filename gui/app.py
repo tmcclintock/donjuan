@@ -3,10 +3,13 @@ Main application window for the DonJuan dungeon generator GUI.
 """
 import sys
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QEvent, QObject, Qt
 from PyQt5.QtWidgets import (
     QAction,
     QApplication,
+    QAbstractSpinBox,
+    QComboBox,
+    QLineEdit,
     QMainWindow,
     QSplitter,
     QStatusBar,
@@ -108,6 +111,17 @@ QPushButton#primaryButton:pressed {
     background-color: #74c7ec;
 }
 
+QPushButton#editModeButton:checked {
+    background-color: #a6e3a1;
+    color: #1e1e2e;
+    border-color: #a6e3a1;
+    font-weight: bold;
+}
+QPushButton#editModeButton:checked:hover {
+    background-color: #cbe8c6;
+    border-color: #cbe8c6;
+}
+
 QStatusBar {
     background-color: #181825;
     color: #6c7086;
@@ -143,6 +157,27 @@ QSplitter::handle {
     width: 2px;
 }
 
+QScrollArea {
+    background-color: transparent;
+    border: none;
+}
+QScrollBar:vertical {
+    background: #181825;
+    width: 6px;
+    border-radius: 3px;
+}
+QScrollBar::handle:vertical {
+    background: #45475a;
+    border-radius: 3px;
+    min-height: 20px;
+}
+QScrollBar::handle:vertical:hover {
+    background: #585b70;
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+
 /* matplotlib navigation toolbar */
 QToolBar, NavigationToolbar2QT {
     background-color: #181825;
@@ -159,6 +194,20 @@ QToolButton:hover {
     background-color: #313244;
 }
 """
+
+
+class _ClickDefocusFilter(QObject):
+    """Clears keyboard focus when the user clicks outside any input widget."""
+
+    _INPUT_TYPES = (QLineEdit, QAbstractSpinBox, QComboBox)
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.MouseButtonPress:
+            focused = QApplication.focusWidget()
+            if focused and isinstance(focused, self._INPUT_TYPES):
+                if not isinstance(obj, self._INPUT_TYPES):
+                    focused.clearFocus()
+        return False
 
 
 class DonJuanApp(QMainWindow):
@@ -189,7 +238,7 @@ class DonJuanApp(QMainWindow):
         status_bar.showMessage("Ready  ·  configure settings and press Generate")
 
         # ── Menu bar ───────────────────────────────────────────────────
-        regen_action, save_action, export_action = self._build_menu()
+        regen_action, save_action, export_action, edit_action, undo_action = self._build_menu()
 
         # ── Controller ─────────────────────────────────────────────────
         self.controller = AppController(
@@ -199,6 +248,8 @@ class DonJuanApp(QMainWindow):
             regen_action=regen_action,
             save_action=save_action,
             export_action=export_action,
+            edit_action=edit_action,
+            undo_action=undo_action,
         )
 
         # ── Wire signals ───────────────────────────────────────────────
@@ -227,9 +278,24 @@ class DonJuanApp(QMainWindow):
         file_menu.addSeparator()
 
         quit_action = QAction("&Quit", self)
-        quit_action.setShortcut("Ctrl+Q")
+        quit_action.setShortcuts(["Ctrl+Q", "Ctrl+W"])
         quit_action.triggered.connect(self.close)
         file_menu.addAction(quit_action)
+
+        # Edit
+        edit_menu = menubar.addMenu("&Edit")
+
+        edit_action = QAction("&Edit Mode", self)
+        edit_action.setShortcut("Ctrl+Shift+E")
+        edit_action.setCheckable(True)
+        edit_action.setEnabled(False)
+        edit_menu.addAction(edit_action)
+
+        undo_action = QAction("&Undo", self)
+        undo_action.setShortcut("Ctrl+Z")
+        undo_action.setEnabled(False)
+        undo_action.triggered.connect(lambda: self.controller.on_undo())
+        edit_menu.addAction(undo_action)
 
         # Generate
         gen_menu = menubar.addMenu("&Generate")
@@ -245,12 +311,14 @@ class DonJuanApp(QMainWindow):
         regen_action.triggered.connect(lambda: self.controller.on_regenerate())
         gen_menu.addAction(regen_action)
 
-        return regen_action, save_action, export_action
+        return regen_action, save_action, export_action, edit_action, undo_action
 
 
 def main():
     app = QApplication(sys.argv)
     app.setApplicationName("DonJuan")
+    defocus_filter = _ClickDefocusFilter()
+    app.installEventFilter(defocus_filter)
     window = DonJuanApp()
     window.show()
     sys.exit(app.exec_())

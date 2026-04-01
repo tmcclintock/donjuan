@@ -13,7 +13,7 @@ from .hallway import Hallway
 from .randomizer import RandomFilled, Randomizer
 from .renderer import BaseRenderer, HexRenderer, Renderer
 from .foundry_exporter import FoundryExporter
-from .textured_renderer import TexturedRenderer, PACK_NAMES
+from .textured_renderer import TexturedRenderer, PACK_NAMES, SPACE_THEMES, ROOM_THEMES
 from .room import Room
 from .room_randomizer import (
     AlphaNumRoomName,

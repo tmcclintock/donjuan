@@ -116,6 +116,21 @@ _PACKS: Dict[str, dict] = {
 #: Ordered list of available pack names for UI combo boxes.
 PACK_NAMES = list(_PACKS.keys())
 
+# ── Room themes ────────────────────────────────────────────────────────────────
+# Each entry overrides the room floor colour regardless of the active pack.
+# ``None`` means "use the pack's own floor_room colour".
+SPACE_THEMES: Dict[str, Optional[Tuple[int, int, int]]] = {
+    "default":  None,
+    "treasury": (175, 145,  55),   # warm gold
+    "throne":   ( 88,  45,  65),   # deep red-purple
+    "prison":   ( 48,  58,  48),   # dark green-grey
+    "barracks": (112,  82,  52),   # earthy brown
+    "crypt":    ( 65,  68,  90),   # cold blue-grey
+}
+
+# Backwards-compat alias
+ROOM_THEMES = SPACE_THEMES
+
 
 class TexturedRenderer(BaseRenderer):
     """
@@ -223,10 +238,14 @@ class TexturedRenderer(BaseRenderer):
                 seed   = r * 10_007 + c
                 if cell.filled:
                     self._draw_wall(img, x0, y0, seed)
-                elif not isinstance(cell.space, Hallway):
-                    self._draw_floor(img, x0, y0, seed, room=True)
+                elif isinstance(cell.space, Hallway):
+                    theme = getattr(cell.space, "theme", "default")
+                    floor_override = SPACE_THEMES.get(theme)
+                    self._draw_floor(img, x0, y0, seed, room=False, floor_override=floor_override)
                 else:
-                    self._draw_floor(img, x0, y0, seed, room=False)
+                    theme = getattr(cell.space, "theme", "default") if cell.space is not None else "default"
+                    floor_override = SPACE_THEMES.get(theme)
+                    self._draw_floor(img, x0, y0, seed, room=True, floor_override=floor_override)
 
         # ── Stage 2: pillars ───────────────────────────────────────────
         if self.pillars:
@@ -319,13 +338,21 @@ class TexturedRenderer(BaseRenderer):
                     )
 
     def _draw_floor(
-        self, img: Image.Image, x0: int, y0: int, seed: int, room: bool
+        self,
+        img: Image.Image,
+        x0: int,
+        y0: int,
+        seed: int,
+        room: bool,
+        floor_override: Optional[Tuple[int, int, int]] = None,
     ) -> None:
         c    = self._c
         rng  = _random.Random(seed)
         t    = self.tile_size
         draw = ImageDraw.Draw(img)
-        base = c["floor_room"] if room else c["floor_hall"]
+        base = floor_override if floor_override is not None else (
+            c["floor_room"] if room else c["floor_hall"]
+        )
 
         draw.rectangle([x0, y0, x0 + t - 1, y0 + t - 1], fill=c["floor_grout"])
 
@@ -577,9 +604,6 @@ class TexturedRenderer(BaseRenderer):
                         continue
                     if c1.filled or c2.filled:
                         continue
-                    # Only torch at a genuine room↔hallway transition.
-                    if isinstance(c1.space, Room) == isinstance(c2.space, Room):
-                        continue
                     mx = ((c1.x + c2.x) / 2.0 + 0.5) * t
                     my = ((c1.y + c2.y) / 2.0 + 0.5) * t
                     torch_px.append((mx, my))
@@ -622,11 +646,6 @@ class TexturedRenderer(BaseRenderer):
                     if c1 is None or c2 is None:
                         continue
                     if c1.filled or c2.filled:
-                        continue
-                    # Only draw a door sprite at a genuine room↔hallway transition.
-                    # room↔room edges (adjacent rooms, no hallway) and
-                    # hallway↔hallway junctions must not render as doors.
-                    if isinstance(c1.space, Room) == isinstance(c2.space, Room):
                         continue
 
                     thick    = max(2, t // 10)
