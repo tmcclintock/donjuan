@@ -8,7 +8,13 @@ import matplotlib.patches as mpatches
 from PyQt5.QtCore import QEvent, QObject
 from PyQt5.QtWidgets import QFileDialog, QInputDialog, QMessageBox
 
-from donjuan import Dungeon, DungeonRandomizer, FoundryExporter, HexRenderer, Renderer, TexturedRenderer
+from donjuan import (
+    Dungeon, DungeonRandomizer, FoundryExporter, HexRenderer, Renderer, TexturedRenderer,
+    ForestScene, ForestRenderer,
+    CampScene, CampRenderer,
+)
+from donjuan.forest import ForestRandomizer
+from donjuan.camp import CampRandomizer
 from gui.edit_controller import EditController
 from donjuan.grid import HexGrid, SquareGrid
 from donjuan.randomizer import Randomizer
@@ -60,6 +66,7 @@ class AppController:
         self._undo_action = undo_action
 
         self._dungeon = None
+        self._scene = None
         self._fig = None
         self._renderer = None
         self._last_seed = None
@@ -114,10 +121,10 @@ class AppController:
         )
         if not path:
             return
-        # TexturedRenderer: save the raw PIL image at full tile resolution.
-        # Other renderers: use matplotlib's savefig at high DPI.
+        # Renderers that build a PIL image store it as _last_image for full-res saving.
+        # Fall back to matplotlib savefig for simple grid renderers.
         if (
-            isinstance(self._renderer, TexturedRenderer)
+            hasattr(self._renderer, "_last_image")
             and self._renderer._last_image is not None
         ):
             self._renderer._last_image.save(path)
@@ -296,7 +303,7 @@ class AppController:
         if self._dungeon is None or self._renderer is None:
             return
 
-        fig, _ax = self._renderer.render(self._dungeon, save=False)
+        fig, _ax = self._renderer.render(self._dungeon, save=False)  # type: ignore[arg-type]
         w, h = fig.get_size_inches()
         scale = min(_MAX_DISPLAY_INCHES / max(w, h), 1.0)
         fig.set_size_inches(w * scale, h * scale, forward=True)
@@ -317,8 +324,69 @@ class AppController:
         self._last_seed = seed
 
         t0 = time.perf_counter()
+        scene_type = params.get("scene_type", "Dungeon")
 
-        # Build the dungeon
+        if scene_type == "Dungeon":
+            scene, renderer, status_msg = self._build_dungeon(params)
+        elif scene_type == "Forest":
+            scene, renderer, status_msg = self._build_forest(params)
+        elif scene_type == "Camp":
+            scene, renderer, status_msg = self._build_camp(params)
+        else:
+            return
+
+        fig, _ax = renderer.render(scene, save=False)
+
+        w, h = fig.get_size_inches()
+        scale = min(_MAX_DISPLAY_INCHES / max(w, h), 1.0)
+        fig.set_size_inches(w * scale, h * scale, forward=True)
+        fig.set_dpi(_SCREEN_DPI)
+
+        elapsed_ms = (time.perf_counter() - t0) * 1000
+
+        self._overlay_artists = []
+        self._dungeon = scene if scene_type == "Dungeon" else None
+        self._scene = scene
+        self._fig = fig
+        self._renderer = renderer
+        self._canvas.update_figure(fig)
+
+        # Edit mode only supported for Dungeon scenes
+        is_dungeon = scene_type == "Dungeon"
+        if self._edit_controller is not None:
+            self._edit_controller.deactivate()
+        if is_dungeon:
+            self._edit_controller = EditController(
+                canvas=self._canvas,
+                dungeon=scene,
+                renderer=renderer,
+                status_bar=self._status,
+                rerender_fn=self._rerender_dungeon,
+                get_theme_fn=lambda: self._cp.current_theme,
+            )
+            if self._edit_mode:
+                self._edit_controller.activate()
+        else:
+            self._edit_controller = None
+            if self._edit_mode:
+                # Turn off edit mode if we're switching away from dungeon
+                self._on_edit_mode_toggled(False)
+
+        self._status.showMessage(
+            f"{status_msg}  ·  seed {seed}  ·  {elapsed_ms:.0f} ms"
+        )
+
+        self._cp.save_btn.setEnabled(True)
+        self._cp.export_btn.setEnabled(is_dungeon)
+        self._regen_action.setEnabled(True)
+        self._save_action.setEnabled(True)
+        if self._export_action is not None:
+            self._export_action.setEnabled(is_dungeon)
+        if self._edit_action is not None:
+            self._edit_action.setEnabled(is_dungeon)
+        self._cp.edit_mode_btn.setEnabled(is_dungeon)
+
+    def _build_dungeon(self, params):
         room_rng = RoomSizeRandomizer(
             min_size=params["min_size"],
             max_size=params["max_size"],
@@ -350,55 +418,46 @@ class AppController:
         dungeon = Dungeon(grid=grid)
         dr.randomize_dungeon(dungeon)
 
-        # Render (no file write)
-        self._renderer = renderer
-        fig, _ax = renderer.render(dungeon, save=False)
-
-        # Scale the figure down for comfortable on-screen display while
-        # preserving aspect ratio. The original figsize is kept for saving.
-        w, h = fig.get_size_inches()
-        scale = min(_MAX_DISPLAY_INCHES / max(w, h), 1.0)
-        fig.set_size_inches(w * scale, h * scale, forward=True)
-        fig.set_dpi(_SCREEN_DPI)
-
-        elapsed_ms = (time.perf_counter() - t0) * 1000
-
-        # Store and display (clear any stale overlay artists first)
-        self._overlay_artists = []
-        self._dungeon = dungeon
-        self._fig = fig
-        self._canvas.update_figure(fig)
-
-        # Rebuild the edit controller for the new dungeon/renderer.
-        # update_figure replaces the underlying FigureCanvas, so any old
-        # mpl_connect IDs are gone — always start fresh.
-        if self._edit_controller is not None:
-            self._edit_controller.deactivate()
-        self._edit_controller = EditController(
-            canvas=self._canvas,
-            dungeon=dungeon,
-            renderer=renderer,
-            status_bar=self._status,
-            rerender_fn=self._rerender_dungeon,
-            get_theme_fn=lambda: self._cp.current_theme,
+        msg = (
+            f"Generated {len(dungeon.rooms)} rooms, "
+            f"{len(dungeon.hallways)} hallways"
         )
-        if self._edit_mode:
-            self._edit_controller.activate()
+        return dungeon, renderer, msg
 
-        n_rooms = len(dungeon.rooms)
-        n_hallways = len(dungeon.hallways)
-        self._status.showMessage(
-            f"Generated {n_rooms} rooms, {n_hallways} hallways  ·  "
-            f"seed {seed}  ·  {elapsed_ms:.0f} ms"
+    def _build_forest(self, params):
+        scene = ForestScene(
+            n_rows=params["n_rows"],
+            n_cols=params["n_cols"],
         )
+        rng = ForestRandomizer(
+            n_clearings=params["n_clearings"],
+            min_radius=params["clearing_min"],
+            max_radius=params["clearing_max"],
+        )
+        rng.randomize(scene)
+        renderer = ForestRenderer(tile_size=48)
+        msg = (
+            f"Generated {len(scene.clearings)} clearings, "
+            f"{len(scene.paths)} paths"
+        )
+        return scene, renderer, msg
 
-        # Unlock save / export controls now that we have content
-        self._cp.save_btn.setEnabled(True)
-        self._cp.export_btn.setEnabled(True)
-        self._regen_action.setEnabled(True)
-        self._save_action.setEnabled(True)
-        if self._export_action is not None:
-            self._export_action.setEnabled(True)
-        if self._edit_action is not None:
-            self._edit_action.setEnabled(True)
-        self._cp.edit_mode_btn.setEnabled(True)
+    def _build_camp(self, params):
+        scene = CampScene(
+            n_rows=params["n_rows"],
+            n_cols=params["n_cols"],
+        )
+        rng = CampRandomizer(
+            n_tents=params["n_tents"],
+            tent_width=params["tent_width"],
+            tent_height=params["tent_height"],
+            fire_radius=params["fire_radius"],
+            perimeter=params["perimeter"],
+        )
+        rng.randomize(scene)
+        renderer = CampRenderer(tile_size=48)
+        msg = (
+            f"Generated camp: {len(scene.tents)} tents, "
+            f"{len(scene.paths)} paths"
+        )
+        return scene, renderer, msg

@@ -4,10 +4,11 @@ from donjuan.edge import Edge
 from donjuan.grid import Grid, SquareGrid
 from donjuan.hallway import Hallway
 from donjuan.room import Room
+from donjuan.scene import Scene
 from donjuan.space import Space
 
 
-class Dungeon:
+class Dungeon(Scene):
     def __init__(
         self,
         n_rows: Optional[int] = 5,
@@ -17,7 +18,7 @@ class Dungeon:
         hallways: Optional[Dict[str, Hallway]] = None,
         randomizers: Optional[List["Randomizer"]] = None,
     ):
-        self._grid = grid or SquareGrid(n_rows, n_cols)
+        super().__init__(grid=grid or SquareGrid(n_rows, n_cols), scene_type="dungeon")
         self._rooms = rooms or {}
         self._hallways = hallways or {}
         self._randomizers = randomizers or []
@@ -30,20 +31,8 @@ class Dungeon:
         self.hallways[hallway.name] = hallway
 
     @property
-    def grid(self) -> Grid:
-        return self._grid
-
-    @property
     def hallways(self) -> Dict[str, Hallway]:
         return self._hallways
-
-    @property
-    def n_cols(self) -> int:
-        return self.grid.n_cols
-
-    @property
-    def n_rows(self) -> int:
-        return self.grid.n_rows
 
     @property
     def randomizers(self) -> List["Randomizer"]:
@@ -67,24 +56,6 @@ class Dungeon:
         Replace the cells in the :attr:`grid` with the cells of the
         :attr:`rooms`.
         """
-
         for room_name, room in self.rooms.items():
             self.emplace_space(room)
-        return
-
-    def emplace_space(self, space: Space) -> None:
-        """
-        Replace the cells in the :attr:`grid` with the cells of the `Space`,
-        and automatically link them with the `Edge`s in the `Grid`.
-
-        Args:
-            space (Space): room to emplace in the :attr:`grid`
-        """
-        last_cell = None
-        for cell in space.cells:
-            self.grid.cells[cell.y][cell.x] = cell
-            last_cell = cell
-        self.grid.link_edges_to_cells()
-        if last_cell is not None:
-            assert last_cell.edges is not None, "problem linking edges to cell"
         return
